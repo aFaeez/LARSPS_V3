@@ -1,0 +1,6 @@
+@LARSPS_V3.Server_HostAddress = http://localhost:5250
+
+GET {{LARSPS_V3.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
