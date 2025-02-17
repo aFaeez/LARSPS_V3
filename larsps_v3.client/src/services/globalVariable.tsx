@@ -1,10 +1,15 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
+
+
+export const COMPANY_NAME = "SPYTL";
+export const SYSTEM_NAME = "SPS";
+
+
 interface ProjectContextType {
     selectedProject: any;
     setSelectedProject: (project: any) => void;
 }
-
-const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     const [selectedProject, setSelectedProject] = useState(null);
@@ -23,8 +28,6 @@ export const UseProject = () => {
     }
     return context;
 };
-
-
 
 // Utility function to safely render data
 export const SafeRender = (value: any): string => {
@@ -122,7 +125,6 @@ export function ValidateAndFormatDateAndTime(date: any): string {
 
     return `${day}-${month}-${year} ${hours}:${minutes} ${amPm}`;
 }
-
 
 // Utility function to check if a value is an empty object
 export function IsEmptyObject(value: any): boolean {

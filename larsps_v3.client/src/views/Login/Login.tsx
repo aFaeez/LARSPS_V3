@@ -1,12 +1,12 @@
-﻿import { MDBInput, MDBContainer, MDBRow, MDBCol } from 'mdb-react-ui-kit';
-import { Col, Card, CardBody, Button, Row, Container, Form, FormGroup, Label } from "reactstrap";
+﻿import { Col, Card, CardBody, Button, Row, Container, Form, FormGroup, Label, Input } from "reactstrap";
 import logo from "../../assets/images/logos/SPYTL.jpg";
 import { ROUTES } from "../../routes/Path";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import ToastNotification from '../../layouts/ToastMsg';
 import { LoginCred } from "../../services/apiService";
-
+import { useState } from "react";
+import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
+import * as globalVariable from "../../services/globalVariable";
 
 function Login() {
     const navigate = useNavigate();
@@ -31,9 +31,18 @@ function Login() {
                 return;
             }
 
-            const userCredential = await LoginCred(formData);
+            const requestData = {
+                queryType: "USER",
+                userID: "",
+                menuSystemName: globalVariable.SYSTEM_NAME
+            };
+
+            const userCredential = await LoginCred(requestData as GetUserRequest);
             if (userCredential) {
                 navigate(`${ROUTES.master}`);
+
+                sessionStorage.setItem("UserId", "");
+                sessionStorage.setItem("SystemName", "SPS");
             } else {
                 console.error("Invalid login credentials");
                 setErrorToastVisible(true);
@@ -49,69 +58,80 @@ function Login() {
         }
     };
 
+
     return (
         <Container className="d-flex vh-100">
             <Row className="align-items-center justify-content-center w-100">
                 <Col sm="12">
                     <Card>
                         <CardBody>
-                            <MDBContainer fluid>
-                                <MDBRow>
-                                    <MDBCol sm='6'>
-                                        <div className='d-flex flex-row ps-5 pt-5'>
-                                            <img src={logo} alt="Logo" />
-                                        </div>
-
-                                        <div className='d-flex flex-column justify-content-center h-custom-2 w-75 pt-4'>
-                                            <h3 className="fw-normal mb-3 ps-5 pb-3" style={{ letterSpacing: '1px' }}>Log in</h3>
-
-                                            {/* Form */}
-                                            <Form onSubmit={handleSubmit}>
-                                                <FormGroup>
-                                                    <Label for="email">Email Address</Label>
-                                                    <MDBInput
-                                                        wrapperClass='mb-4 mx-5 w-100'
-                                                        label='Email address'
-                                                        id='email'
-                                                        type='email'
-                                                        name="email"
-                                                        value={formData.email}
+                            <Row>
+                                <Col sm='6'>
+                                    <div className='d-flex flex-row ps-5 pt-5'>
+                                        <img src={logo} alt="Logo" />
+                                    </div>
+                                    <div className='d-flex flex-row ps-5 pt-4'>
+                                        <h3 style={{ letterSpacing: '1px' }}>
+                                            WELCOME TO LARSPSV3
+                                        </h3>
+                                    </div>
+                                    
+                                    <div className='pt-4'>
+                                        {/* Form */}
+                                        <Form onSubmit={handleSubmit} className="w-100 p-4">
+                                            <FormGroup row className="mb-3">
+                                                <Label for="username" sm={3} className="text-end fw-semibold">
+                                                    Username
+                                                </Label>
+                                                <Col sm={9}>
+                                                    <Input
+                                                        type="text"
+                                                        id="username"
+                                                        name="username"
+                                                        placeholder="Enter your username"
                                                         onChange={handleInputChange}
-                                                        size="lg"
+                                                        className="w-100"
                                                     />
-                                                </FormGroup>
+                                                </Col>
+                                            </FormGroup>
 
-                                                <FormGroup>
-                                                    <Label for="password">Password</Label>
-                                                    <MDBInput
-                                                        wrapperClass='mb-4 mx-5 w-100'
-                                                        label='Password'
-                                                        id='password'
-                                                        type='password'
+                                            <FormGroup row className="mb-4">
+                                                <Label for="password" sm={3} className="text-end fw-semibold">
+                                                    Password
+                                                </Label>
+                                                <Col sm={9}>
+                                                    <Input
+                                                        type="password"
+                                                        id="password"
                                                         name="password"
-                                                        value={formData.password}
+                                                        placeholder="Enter your password"
                                                         onChange={handleInputChange}
-                                                        size="lg"
+                                                        className="w-100"
                                                     />
-                                                </FormGroup>
+                                                </Col>
+                                            </FormGroup>
 
-                                                <Button className="mb-4 px-5 mx-5 w-100" type="submit" color="primary" disabled={loading}>
-                                                    {loading ? "Logging in..." : "Login"}
-                                                </Button>
-                                            </Form>
-                                        </div>
-                                    </MDBCol>
+                                            {/* Login Button - Same Width as Inputs */}
+                                            <FormGroup row>
+                                                <Col sm={{ size: 9, offset: 3 }}>
+                                                    <Button type="submit" color="primary" disabled={loading} className="w-100">
+                                                        {loading ? "Logging in..." : "Login"}
+                                                    </Button>
+                                                </Col>
+                                            </FormGroup>
+                                        </Form>
+                                    </div>
+                                </Col>
 
-                                    <MDBCol sm="6" className="d-flex justify-content-center align-items-start" style={{ paddingTop: "50px" }}>
-                                        <img
-                                            src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-                                            className="img-fluid"
-                                            alt="Login visual"
-                                            style={{ maxHeight: "400px", objectFit: "contain" }}
-                                        />
-                                    </MDBCol>
-                                </MDBRow>
-                            </MDBContainer>
+                                <Col sm="6" className="d-flex justify-content-center align-items-start" style={{ paddingTop: "50px" }}>
+                                    <img
+                                        src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                                        className="img-fluid"
+                                        alt="Login visual"
+                                        style={{ maxHeight: "400px", objectFit: "contain" }}
+                                    />
+                                </Col>
+                            </Row>
 
                             {/* Error Toast */}
                             <ToastNotification

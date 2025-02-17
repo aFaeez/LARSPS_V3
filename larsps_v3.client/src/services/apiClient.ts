@@ -387,7 +387,7 @@ export class Client {
     /**
      * @return OK
      */
-    getUser(body: GetUserRequest): Promise<void> {
+    getUser(body: GetUserRequest): Promise<GetUserResponse[]> {
         let url_ = this.baseUrl + "/GetUser";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -398,6 +398,7 @@ export class Client {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -406,19 +407,37 @@ export class Client {
         });
     }
 
-    protected processGetUser(response: Response): Promise<void> {
+    protected processGetUser(response: Response): Promise<GetUserResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GetUserResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            return throwException("Internal Server Error", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<GetUserResponse[]>(null as any);
     }
 
     /**
@@ -1248,6 +1267,86 @@ export interface IGetUserRequest {
     queryType?: string | undefined;
     userID?: string | undefined;
     menuSystemName?: string | undefined;
+}
+
+export class GetUserResponse implements IGetUserResponse {
+    userId?: string | undefined;
+    accessStartDate?: Date;
+    accessEndDate?: Date;
+    isActive?: number;
+    msName?: string | undefined;
+    msEmail?: string | undefined;
+    msdDepartment?: string | undefined;
+    msdPostingLocation?: string | undefined;
+    msdPostingCode?: string | undefined;
+    msdDesignation?: string | undefined;
+    msIsActive?: number;
+    roleName?: string | undefined;
+
+    constructor(data?: IGetUserResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.userId = _data["userId"];
+            this.accessStartDate = _data["accessStartDate"] ? new Date(_data["accessStartDate"].toString()) : <any>undefined;
+            this.accessEndDate = _data["accessEndDate"] ? new Date(_data["accessEndDate"].toString()) : <any>undefined;
+            this.isActive = _data["isActive"];
+            this.msName = _data["msName"];
+            this.msEmail = _data["msEmail"];
+            this.msdDepartment = _data["msdDepartment"];
+            this.msdPostingLocation = _data["msdPostingLocation"];
+            this.msdPostingCode = _data["msdPostingCode"];
+            this.msdDesignation = _data["msdDesignation"];
+            this.msIsActive = _data["msIsActive"];
+            this.roleName = _data["roleName"];
+        }
+    }
+
+    static fromJS(data: any): GetUserResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new GetUserResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["userId"] = this.userId;
+        data["accessStartDate"] = this.accessStartDate ? this.accessStartDate.toISOString() : <any>undefined;
+        data["accessEndDate"] = this.accessEndDate ? this.accessEndDate.toISOString() : <any>undefined;
+        data["isActive"] = this.isActive;
+        data["msName"] = this.msName;
+        data["msEmail"] = this.msEmail;
+        data["msdDepartment"] = this.msdDepartment;
+        data["msdPostingLocation"] = this.msdPostingLocation;
+        data["msdPostingCode"] = this.msdPostingCode;
+        data["msdDesignation"] = this.msdDesignation;
+        data["msIsActive"] = this.msIsActive;
+        data["roleName"] = this.roleName;
+        return data;
+    }
+}
+
+export interface IGetUserResponse {
+    userId?: string | undefined;
+    accessStartDate?: Date;
+    accessEndDate?: Date;
+    isActive?: number;
+    msName?: string | undefined;
+    msEmail?: string | undefined;
+    msdDepartment?: string | undefined;
+    msdPostingLocation?: string | undefined;
+    msdPostingCode?: string | undefined;
+    msdDesignation?: string | undefined;
+    msIsActive?: number;
+    roleName?: string | undefined;
 }
 
 export class JsonNode implements IJsonNode {

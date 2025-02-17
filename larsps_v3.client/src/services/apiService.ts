@@ -1,6 +1,10 @@
 ﻿import axiosInstance from "./axiosInstance";
 import * as globalVariable from "./globalVariable";
-import { ProjectDTO, StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, User, AttachmentTable } from "../dto/dtos";
+import { ProjectDTO, StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, AttachmentTable } from "../dto/dtos";
+
+export const getCompanyName = (): string => {
+    return globalVariable.COMPANY_NAME;
+};
 
 const apiService = {
     // Fetch user projects from the stored procedure
@@ -19,9 +23,6 @@ const apiService = {
 };
 export default apiService;
 
-const constComp = (): string => {
-    return "SPYTL";
-};
 //----------------------------------------------------------------------------------------------------------------------
 // Fetch project data by status ID
 export const FetchProjectsByStatus = async (statusID: number): Promise<ProjectDTO[]> => {
@@ -50,7 +51,7 @@ export const FetchProjectStatusOptions = async (): Promise<StatusOptionDTO[]> =>
 // Fetch BG Sub
 export const FetchGetBG = async (UPProjectId: string): Promise<BGDTO[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const response = await axiosInstance.post("/GetBG", { compIdStr: CompId, projectStr: UPProjectId });
 
         // Map the API data to enforce DTO structure
@@ -119,7 +120,7 @@ export const FetchBGSub = async (LANo: string): Promise<BGSub[]> => {
 // Fetch APB
 export const FetchAPB = async (strProjId: string, strLaNo: string): Promise<APB[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const response = await axiosInstance.post("/GetAPB", { compIdStr: CompId, projectStr: strProjId, strLaNo: strLaNo });
 
         const mappedData: APB[] = response.data.map((item: any) => ({
@@ -146,7 +147,7 @@ export const FetchAPB = async (strProjId: string, strLaNo: string): Promise<APB[
 // GET BGDashboard_TotLA
 export const GetTotLA = async (UPProjectId: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const response = await axiosInstance.post("/BGDashboard_TotLA", { compIdStr: CompId, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
@@ -158,7 +159,7 @@ export const GetTotLA = async (UPProjectId: string): Promise<BGDashboard[]> => {
 // GET BGDashboard_Approved
 export const GetApproved = async (UPProjectId: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const response = await axiosInstance.post("/BGDashboard_Approved", { compIdStr: CompId, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
@@ -170,7 +171,7 @@ export const GetApproved = async (UPProjectId: string): Promise<BGDashboard[]> =
 // GET BGDashboard_Pending
 export const GetPending = async (UPProjectId: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const response = await axiosInstance.post("/BGDashboard_Pending", { compIdStr: CompId, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
@@ -195,7 +196,7 @@ const allowedColumns: (keyof BGSub)[] = [
 // Submit BG
 export const SubmitBG = async (formData: BGSub[]): Promise<BGSub[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const sqlString = formData.map((item) => {
             const columnAssignments = allowedColumns
                 .filter((key) => key in item)
@@ -235,7 +236,7 @@ const allowedColumnsAPB: (keyof APB)[] = [
 // Submit APB
 export const SubmitAPB = async (formData: APB[]): Promise<APB[]> => {
     try {
-        const CompId = constComp();
+        const CompId = getCompanyName();
         const sqlString = formData.map((item) => {
             const columnAssignments = allowedColumnsAPB
                 .filter((key) => key in item)
@@ -258,7 +259,7 @@ export const SubmitAPB = async (formData: APB[]): Promise<APB[]> => {
 
 // Activator   #1 Activate BG   #2 Activate APB   #3 Activate Waived
 export const Activator = async (AppStat: string, UserId: string, IPAddr: string, DateCurr: string, type: string, LANo: string): Promise<any[]> => {
-    const CompId = constComp();
+    const CompId = getCompanyName();
     try {
         const response = await axiosInstance.post("/Activator", { AppStatStr: AppStat, UserIdStr: UserId, IPAddrStr: IPAddr, DateCurrStr: DateCurr, typeStr: type, compIDStr: CompId, laNoStr: LANo });
         return response.data;
@@ -279,15 +280,6 @@ export const GetUserQSME = async (): Promise<UserQSME[]> => {
     }
 };
 
-export const LoginCred = async (credentials: { userid: string; password: string }): Promise<User> => {
-    try {
-        const response = await axiosInstance.post("/LoginLAR", credentials);
-        return response.data;
-    } catch (error) {
-        console.error("Error during login:", error);
-        throw new Error("Failed to login. Please try again.");
-    }
-};
 
 
 // Fetch Fetch Get File
@@ -327,22 +319,32 @@ export const FetchGetFile = async (LaNo: string, project: string): Promise<Attac
     }
 };
 
-import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse } from "./apiClient";
+import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse, GetUserRequest,GetUserResponse } from "./apiClient";
 
-//export const fetchMenus = async (requestData: GetMenuChildRequest): Promise<GetMenuChildResponse[]> => {
-//    const response = await fetch("/GetMenuChild", {
-//        method: "POST",
-//        headers: { "Content-Type": "application/json" },
-//        body: JSON.stringify(requestData),
-//    });
-
-//    if (!response.ok) {
-//        throw new Error(`Error: ${response.statusText}`);
+//export const LoginCred = async (credentials: { userid: string; password: string }): Promise<User> => {
+//    try {
+//        const response = await axiosInstance.post("/GetUser", credentials);
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error during login:", error);
+//        throw new Error("Failed to login. Please try again.");
 //    }
-
-//    return await response.json() as GetMenuChildResponse[];
 //};
 
+export const LoginCred = async (requestData: GetUserRequest): Promise<GetUserResponse[]> => {
+    try {
+        const response = await axiosInstance.post<GetUserResponse[]>("/GetUser", requestData, {
+            headers: { "Content-Type": "application/json" }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Failed login please try again:", error);
+        throw new Error("Failed login please try again");
+    }
+};
+
+//parent
 export const fetchParentMenus = async (requestData: GetMenuParentRequest): Promise<GetMenuParentResponse[]> => {
     try {
         const response = await axiosInstance.post<GetMenuParentResponse[]>("/GetMenuParent", requestData, {
@@ -356,6 +358,8 @@ export const fetchParentMenus = async (requestData: GetMenuParentRequest): Promi
     }
 };
 
+
+//child
 export const fetchMenus = async (requestData: GetMenuChildRequest): Promise<GetMenuChildResponse[]> => {
     try {
         const response = await axiosInstance.post<GetMenuChildResponse[]>("/GetMenuChild", requestData, {

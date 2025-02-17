@@ -692,14 +692,34 @@ public static class ProjectStoredProcedureModule
                 };
 
                 var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-                return Results.Ok(resultList);
+                var list = resultList.Select(row => new GetUserResponse
+                {
+                    UserId = row["UserId"]?.ToString() ?? string.Empty,
+                    AccessStartDate = row["AccessStartDate"] != DBNull.Value ? Convert.ToDateTime(row["AccessStartDate"]) : default,
+                    AccessEndDate = row["AccessEndDate"] != DBNull.Value ? Convert.ToDateTime(row["AccessEndDate"]) : default,
+                    IsActive = row["IsActive"] != DBNull.Value ? Convert.ToInt32(row["IsActive"]) : 0,
+                    MSName = row["MSName"]?.ToString() ?? string.Empty,
+                    MSEmail = row["MSEmail"]?.ToString() ?? string.Empty,
+                    MSDDepartment = row["MSDDepartment"]?.ToString() ?? string.Empty,
+                    MSDPostingLocation = row["MSDPostingLocation"]?.ToString() ?? string.Empty,
+                    MSDPostingCode = row["MSDPostingCode"]?.ToString() ?? string.Empty,
+                    MSDDesignation = row["MSDDesignation"]?.ToString() ?? string.Empty,
+                    MSIsActive = row["MSIsActive"] != DBNull.Value ? Convert.ToInt32(row["MSIsActive"]) : 0,
+                    RoleName = row["RoleName"]?.ToString() ?? string.Empty
+                }).ToList();
+
+                return Results.Ok(list);
             }
             catch (Exception ex)
             {
                 return Results.Problem(detail: ex.Message, statusCode: 500);
             }
-        });
-        //EXEC dbo.uspUserAccessMenu @QueryType='GENERATE_MENU',@MenuSystemName='SPS',@UserID='KBTAN',@IsITAdmin=0,@MenuSubSystemName='';
+        }).WithName("GetUser")
+        .Produces<List<GetUserResponse>>(200)
+        .Produces(400)
+        .Produces(500);
+
+
         //GetMenuParent
         app.MapPost("/GetMenuParent", async ([FromServices] DataBaseContext dbContext, [FromBody] GetMenuParentRequest request) =>
         {
