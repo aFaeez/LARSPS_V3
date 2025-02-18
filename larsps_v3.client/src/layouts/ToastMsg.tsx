@@ -6,7 +6,7 @@ interface ToastMsgProps {
     type: "success" | "error";
     message: string;
     toggle: () => void;
-    timeout?: number;
+    timeout: number;
 }
 
 const ToastMsg = ({ isOpen, type, message, toggle, timeout = 3000 }: ToastMsgProps) => {

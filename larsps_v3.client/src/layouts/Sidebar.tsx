@@ -4,8 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import user1 from "../assets/images/users/user4.jpg";
 import probg from "../assets/images/bg/ytl.png";
 import { ROUTES } from "../routes/Path";
-import * as globalVariable from "../services/globalVariable";
 import { fetchMenus, fetchParentMenus } from "../services/apiService";
+import { useSession } from "../context/SessionContext";
 import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse } from "../services/apiClient";
 
 const navigation = [
@@ -25,6 +25,7 @@ const navigation = [
 ];
 
 const Sidebar = () => {
+    const { userId, isITAdmin, systemName } = useSession();
     const [menuItemsParent, setMenuItemsParent] = useState<GetMenuParentResponse[]>([]);
     const [menuItems, setMenuItems] = useState<Record<number, GetMenuChildResponse[]>>({});
     const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
@@ -34,15 +35,13 @@ const Sidebar = () => {
     useEffect(() => {
         const loadMenusParent = async () => {
             try {
-                const userId: string = sessionStorage.getItem("UserId") as string;
-                const itAdmin: string = sessionStorage.getItem("isITAdmin") as string;
 
                 const requestData: GetMenuParentRequest = {
                     queryType: "GENERATE_MENU",
                     userID: userId,
-                    menuSystemName: globalVariable.SYSTEM_NAME,
-                    isITAdmin: itAdmin,
-                    menuSubSystemName: globalVariable.SYSTEM_NAME
+                    menuSystemName: systemName,
+                    isITAdmin: isITAdmin,
+                    menuSubSystemName: systemName
                 } as unknown as GetMenuParentRequest;
                 
                 const fetchedMenusParents = await fetchParentMenus(requestData);
@@ -60,8 +59,8 @@ const Sidebar = () => {
                         const childRequest: GetMenuChildRequest = {
                             queryType: "GENERATE_MENU_CHILD",
                             userID: userId,
-                            menuSystemName: globalVariable.SYSTEM_NAME,
-                            isITAdmin: itAdmin,
+                            menuSystemName: systemName,
+                            isITAdmin: isITAdmin,
                             menuParentID: parent.menuId.toString()
                         } as unknown as GetMenuChildRequest;
                         const fetchedChildMenus = await fetchMenus(childRequest);

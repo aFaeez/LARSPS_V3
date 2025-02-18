@@ -1,7 +1,7 @@
 ﻿import { Col, CardBody, Button, Card, Form, FormGroup, Label, Input, FormText, CardTitle } from "reactstrap";
 import { useState, useEffect } from "react";
-
-import { FetchBGSub, SubmitBG } from "../../services/apiService";
+import { useSession } from "../../context/SessionContext";
+import * as API from "../../services/apiService";
 import { SafeRender, SafeRenderDate, GetCurrentDateTime, GetUserIPAddress, SafeRenderDatewithTime } from "../../services/globalVariable";
 import { BGSub, SubBGTemplateProps } from "../../dto/dtos";
 import LoadingModal from '../../layouts/LoadingModal';
@@ -9,7 +9,7 @@ import ToastNotification from '../../layouts/ToastMsg';
 import Uploader from "./Uploader";
 
 const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
-
+    const { companyName } = useSession();
     const [bgSub, setBGSub] = useState<BGSub[]>([]); // State to hold fetched data
     const [loading, setLoading] = useState(false); // State for loading indicator
     const [toastVisible, setToastVisible] = useState(false); // Success toast visibility state
@@ -36,7 +36,7 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
         setError(null);
 
         try {
-            const BG = await FetchBGSub(strLA);
+            const BG = await API.FetchBGSub(strLA);
             setBGSub(BG);
             setFormData(BG);
         } catch (err: any) {
@@ -86,11 +86,10 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                     };
 
                     try {
-                        // Submit only the updated item
-                        console.log("Submitting the following data:", updatedItem); // Debugging log
-                        await SubmitBG([updatedItem]); // Submit only the updated row
+                        if (companyName) {
+                            await API.SubmitBG([updatedItem], companyName); 
+                        }
 
-                        // Update the state after successful submission
                         setFormData((prevFormData) => {
                             const newFormData = [...prevFormData];
                             newFormData[targetItemIndex] = updatedItem;

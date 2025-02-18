@@ -5,14 +5,15 @@ import { useNavigate } from "react-router-dom";
 import ToastNotification from '../../layouts/ToastMsg';
 import { LoginCred } from "../../services/apiService";
 import { useState } from "react";
-import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
-import * as globalVariable from "../../services/globalVariable";
+import { GetUserRequest } from "../../services/apiClient";
+import { useSession } from "../../context/SessionContext";
 
 function Login() {
     const navigate = useNavigate();
+    const { systemName } = useSession();
     const [loading, setLoading] = useState(false);
     const [errorToastVisible, setErrorToastVisible] = useState(false);
-    const [formData, setFormData] = useState({ email: "", password: "" }); 
+    const [formData, setFormData] = useState({ username: "", password: "" }); 
 
     // Handle Input Change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +26,7 @@ function Login() {
         setLoading(true);
 
         try {
-            if (!formData.email || !formData.password) {
+            if (!formData.username || !formData.password) {
                 setErrorToastVisible(true);
                 setTimeout(() => setErrorToastVisible(false), 3000);
                 return;
@@ -33,16 +34,15 @@ function Login() {
 
             const requestData = {
                 queryType: "USER",
-                userID: "",
-                menuSystemName: globalVariable.SYSTEM_NAME
+                userID: formData.username,
+                menuSystemName: systemName
             };
 
             const userCredential = await LoginCred(requestData as GetUserRequest);
             if (userCredential) {
                 navigate(`${ROUTES.master}`);
-
+                console.log("Checkpoint 1:" + userCredential);
                 sessionStorage.setItem("UserId", "");
-                sessionStorage.setItem("SystemName", "SPS");
             } else {
                 console.error("Invalid login credentials");
                 setErrorToastVisible(true);
@@ -137,7 +137,7 @@ function Login() {
                             <ToastNotification
                                 isOpen={errorToastVisible}
                                 type="error"
-                                message="Invalid email or password. Please try again."
+                                message="Invalid username or password. Please try again."
                                 toggle={() => setErrorToastVisible(false)}
                             />
                         </CardBody>

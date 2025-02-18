@@ -1,7 +1,7 @@
 import { Row, Col, Card, CardBody, CardTitle, CardText, Badge, Form, FormGroup, Input, Button } from "reactstrap";
 import React, { useState, useEffect, useMemo } from "react";
 import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
-
+import { useSession } from "../../context/SessionContext";
 import { FetchGetBG, GetTotLA, GetApproved, GetPending, Activator } from "../../services/apiService";
 import { SafeRender, GetCurrentDateTime, SafeRenderDatewithTime, GetUserIPAddress } from "../../services/globalVariable";
 import { BGDTO } from "../../dto/dtos";
@@ -11,6 +11,7 @@ import ListProjModal from "./ListProjModal";
 import ToastNotification from '../../layouts/ToastMsg';
 
 const BankGuarantee: React.FC = () => {
+    const { companyName } = useSession();
     const [data, setBG] = useState<BGDTO[]>([]); // State to hold fetched data
     const [loading, setLoading] = useState(false); // State for loading indicator
     const [search, setSearch] = useState(""); // State for filtering
@@ -40,22 +41,25 @@ const BankGuarantee: React.FC = () => {
     const fetchData = async (UPProjectId: string) => {
         setLoading(true);
         try {
-            const BG = await FetchGetBG(UPProjectId);
-            setBG(BG);
-            setFilteredData(BG);
+            if (companyName) {
+                const BG = await FetchGetBG(UPProjectId, companyName);
+                setBG(BG);
+                setFilteredData(BG);
 
-            const totalLA = await GetTotLA(UPProjectId);
-            const Count = totalLA[0]?.TotalCount; //TotalCount set at SQL
-            setTotLA(Count);
+                const totalLA = await GetTotLA(UPProjectId, companyName);
+                const Count = totalLA[0]?.TotalCount;
+                setTotLA(Count);
 
-            const totalAppr = await GetApproved(UPProjectId);
-            const Appr = totalAppr[0]?.TotalCount;
-            setApproved(Appr);
+                const totalAppr = await GetApproved(UPProjectId, companyName);
+                const Appr = totalAppr[0]?.TotalCount;
+                setApproved(Appr);
 
 
-            const totalPending = await GetPending(UPProjectId);
-            const Pend = totalPending[0]?.TotalCount;
-            setPending(Pend);
+                const totalPending = await GetPending(UPProjectId, companyName);
+                const Pend = totalPending[0]?.TotalCount;
+                setPending(Pend);
+            }
+
         } catch (err) {
             console.error("Error fetching BG:", err);
         } finally {
@@ -203,14 +207,14 @@ const BankGuarantee: React.FC = () => {
             if (newStatus === "No") {
                 statusToNumber = "0";
             }
-
-            await Activator(statusToNumber, userId, ipField, currentDate, type, LANo);
-            setFilteredData(updatedData);
-            setToastMessage(`Successfully ${action}d ${type}.`);
-            setToastVisible(true);
-            setTimeout(() => setToastVisible(false), 3000);
-
-
+            if (companyName) {
+                await Activator(statusToNumber, userId, ipField, currentDate, type, LANo, companyName);
+                setFilteredData(updatedData);
+                setToastMessage(`Successfully ${action}d ${type}.`);
+                setToastVisible(true);
+                setTimeout(() => setToastVisible(false), 3000);
+            }
+            
         } catch (err) {
             console.error("Failed to update status:", err);
             setToastMessage("Failed to update status, Please try again");

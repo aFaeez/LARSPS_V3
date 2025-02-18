@@ -6,9 +6,10 @@ import ToastNotification from '../../layouts/ToastMsg';
 import * as globalVariable from "../../services/globalVariable";
 import * as API from "../../services/apiService";
 import Uploader from "./Uploader";
+import { useSession } from "../../context/SessionContext";
 
 const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
-
+    const { companyName } = useSession();
     const [apb, setAPB] = useState<APB[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -35,9 +36,11 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
         setError(null);
 
         try {
-            const APB = await API.FetchAPB(strProjId, strLA);
-            setAPB(APB);
-            setFormData(APB);
+            if (companyName) {
+                const APB = await API.FetchAPB(strProjId, strLA, companyName);
+                setAPB(APB);
+                setFormData(APB);
+            }
         } catch (err: any) {
             setError(err.message || "An error occurred while fetching data");
         } finally {
@@ -67,7 +70,10 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
                     };
 
                     try {
-                        await API.SubmitAPB([updatedItem]); // Submit only the updated row
+
+                        if (companyName) {
+                            await API.SubmitAPB([updatedItem], companyName); // Submit only the updated row
+                        }
 
                         // Update the state after successful submission
                         setFormData((prevFormData) => {

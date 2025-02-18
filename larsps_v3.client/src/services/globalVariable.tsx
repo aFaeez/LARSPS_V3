@@ -1,11 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-
-export const COMPANY_NAME = "SPYTL";
-export const SYSTEM_NAME = "SPS";
-
-
 interface ProjectContextType {
     selectedProject: any;
     setSelectedProject: (project: any) => void;

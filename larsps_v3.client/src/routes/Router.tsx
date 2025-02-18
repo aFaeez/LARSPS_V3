@@ -24,7 +24,7 @@ const ThemeRoutes = [
         path: "/",
         element: <FullLayout />,
         children: [
-            { path: "/", element: <Navigate to={ROUTES.master} /> },
+            { path: "/", element: <Navigate to={ROUTES.login} /> },
             { path: ROUTES.main, exact: true, element: <MainPage /> },
             { path: ROUTES.master, exact: true, element: <MasterPage /> },
             { path: ROUTES.bankGuarantee, exact: true, element: <BankGuarantee /> },

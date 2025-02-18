@@ -2,10 +2,6 @@
 import * as globalVariable from "./globalVariable";
 import { ProjectDTO, StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, AttachmentTable } from "../dto/dtos";
 
-export const getCompanyName = (): string => {
-    return globalVariable.COMPANY_NAME;
-};
-
 const apiService = {
     // Fetch user projects from the stored procedure
     getUserProjects: async (): Promise<any[]> => {
@@ -49,10 +45,9 @@ export const FetchProjectStatusOptions = async (): Promise<StatusOptionDTO[]> =>
 };
 
 // Fetch BG Sub
-export const FetchGetBG = async (UPProjectId: string): Promise<BGDTO[]> => {
+export const FetchGetBG = async (UPProjectId: string,companyName: string): Promise<BGDTO[]> => {
     try {
-        const CompId = getCompanyName();
-        const response = await axiosInstance.post("/GetBG", { compIdStr: CompId, projectStr: UPProjectId });
+        const response = await axiosInstance.post("/GetBG", { compIdStr: companyName, projectStr: UPProjectId });
 
         // Map the API data to enforce DTO structure
         const mappedData: BGDTO[] = response.data.map((item: any) => ({
@@ -118,10 +113,9 @@ export const FetchBGSub = async (LANo: string): Promise<BGSub[]> => {
 };
 
 // Fetch APB
-export const FetchAPB = async (strProjId: string, strLaNo: string): Promise<APB[]> => {
+export const FetchAPB = async (strProjId: string, strLaNo: string, companyName: string): Promise<APB[]> => {
     try {
-        const CompId = getCompanyName();
-        const response = await axiosInstance.post("/GetAPB", { compIdStr: CompId, projectStr: strProjId, strLaNo: strLaNo });
+        const response = await axiosInstance.post("/GetAPB", { compIdStr: companyName, projectStr: strProjId, strLaNo: strLaNo });
 
         const mappedData: APB[] = response.data.map((item: any) => ({
             APBLaNo: globalVariable.IsEmptyObject(item.APBLaNo) ? null : item.APBLaNo,
@@ -145,10 +139,9 @@ export const FetchAPB = async (strProjId: string, strLaNo: string): Promise<APB[
 };
 
 // GET BGDashboard_TotLA
-export const GetTotLA = async (UPProjectId: string): Promise<BGDashboard[]> => {
+export const GetTotLA = async (UPProjectId: string, companyName: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = getCompanyName();
-        const response = await axiosInstance.post("/BGDashboard_TotLA", { compIdStr: CompId, projectStr: UPProjectId });
+        const response = await axiosInstance.post("/BGDashboard_TotLA", { compIdStr: companyName, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
         console.error("Error fetching GetBGDashboard_TotLABG:", error);
@@ -157,10 +150,9 @@ export const GetTotLA = async (UPProjectId: string): Promise<BGDashboard[]> => {
 };
 
 // GET BGDashboard_Approved
-export const GetApproved = async (UPProjectId: string): Promise<BGDashboard[]> => {
+export const GetApproved = async (UPProjectId: string, companyName: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = getCompanyName();
-        const response = await axiosInstance.post("/BGDashboard_Approved", { compIdStr: CompId, projectStr: UPProjectId });
+        const response = await axiosInstance.post("/BGDashboard_Approved", { compIdStr: companyName, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
         console.error("Error fetching BGDashboard_Approved:", error);
@@ -169,10 +161,9 @@ export const GetApproved = async (UPProjectId: string): Promise<BGDashboard[]> =
 };
 
 // GET BGDashboard_Pending
-export const GetPending = async (UPProjectId: string): Promise<BGDashboard[]> => {
+export const GetPending = async (UPProjectId: string, companyName: string): Promise<BGDashboard[]> => {
     try {
-        const CompId = getCompanyName();
-        const response = await axiosInstance.post("/BGDashboard_Pending", { compIdStr: CompId, projectStr: UPProjectId });
+        const response = await axiosInstance.post("/BGDashboard_Pending", { compIdStr: companyName, projectStr: UPProjectId });
         return response.data;
     } catch (error) {
         console.error("Error fetching BGDashboard_Pending:", error);
@@ -194,9 +185,8 @@ const allowedColumns: (keyof BGSub)[] = [
 ];
 
 // Submit BG
-export const SubmitBG = async (formData: BGSub[]): Promise<BGSub[]> => {
+export const SubmitBG = async (formData: BGSub[], companyName: string): Promise<BGSub[]> => {
     try {
-        const CompId = getCompanyName();
         const sqlString = formData.map((item) => {
             const columnAssignments = allowedColumns
                 .filter((key) => key in item)
@@ -209,7 +199,7 @@ export const SubmitBG = async (formData: BGSub[]): Promise<BGSub[]> => {
                 })
                 .join(", ");
 
-            return `${columnAssignments} WHERE BGCompId='${CompId}' AND BGLaNo='${item.BGLaNo}' AND BGActive='1'`;
+            return `${columnAssignments} WHERE BGCompId='${companyName}' AND BGLaNo='${item.BGLaNo}' AND BGActive='1'`;
         });
 
         //console.log("Generated SQL String:", sqlString);
@@ -234,9 +224,8 @@ const allowedColumnsAPB: (keyof APB)[] = [
 ];
 
 // Submit APB
-export const SubmitAPB = async (formData: APB[]): Promise<APB[]> => {
+export const SubmitAPB = async (formData: APB[],companyName: string): Promise<APB[]> => {
     try {
-        const CompId = getCompanyName();
         const sqlString = formData.map((item) => {
             const columnAssignments = allowedColumnsAPB
                 .filter((key) => key in item)
@@ -245,7 +234,7 @@ export const SubmitAPB = async (formData: APB[]): Promise<APB[]> => {
                 })
                 .join(", ");
 
-            return `${columnAssignments} WHERE APBCompId='${CompId}' AND APBLaNo='${item.APBLaNo}' AND APBActive='1'`;
+            return `${columnAssignments} WHERE APBCompId='${companyName}' AND APBLaNo='${item.APBLaNo}' AND APBActive='1'`;
         });
         //console.log("Generated SQL String:", sqlString);
         const response = await axiosInstance.post("/SubmitAPB", { strSQL: sqlString.join("; ") });
@@ -258,10 +247,9 @@ export const SubmitAPB = async (formData: APB[]): Promise<APB[]> => {
 };
 
 // Activator   #1 Activate BG   #2 Activate APB   #3 Activate Waived
-export const Activator = async (AppStat: string, UserId: string, IPAddr: string, DateCurr: string, type: string, LANo: string): Promise<any[]> => {
-    const CompId = getCompanyName();
+export const Activator = async (AppStat: string, UserId: string, IPAddr: string, DateCurr: string, type: string, LANo: string, companyName: string): Promise<any[]> => {
     try {
-        const response = await axiosInstance.post("/Activator", { AppStatStr: AppStat, UserIdStr: UserId, IPAddrStr: IPAddr, DateCurrStr: DateCurr, typeStr: type, compIDStr: CompId, laNoStr: LANo });
+        const response = await axiosInstance.post("/Activator", { AppStatStr: AppStat, UserIdStr: UserId, IPAddrStr: IPAddr, DateCurrStr: DateCurr, typeStr: type, compIDStr: companyName, laNoStr: LANo });
         return response.data;
     } catch (error) {
         console.error("Error activate" + type, error);
