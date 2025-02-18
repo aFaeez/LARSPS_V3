@@ -19,6 +19,24 @@ const apiService = {
 };
 export default apiService;
 
+export interface Settings {
+    itadmin: string;
+    isDebug: string;
+    connDb: string;
+    systemName: string;
+    companyName: string;
+}
+
+export const WebConfig = async (): Promise<Settings> => {
+    try {
+        const response = await axiosInstance.get<Settings>("/api/settings");
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching settings. Please try again.", error);
+        throw new Error("Failed to fetch settings. Please try again.");
+    }
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Fetch project data by status ID
 export const FetchProjectsByStatus = async (statusID: number): Promise<ProjectDTO[]> => {

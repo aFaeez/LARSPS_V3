@@ -3,14 +3,15 @@ import logo from "../../assets/images/logos/SPYTL.jpg";
 import { ROUTES } from "../../routes/Path";
 import { useNavigate } from "react-router-dom";
 import ToastNotification from '../../layouts/ToastMsg';
-import { LoginCred } from "../../services/apiService";
-import { useState } from "react";
-import { GetUserRequest } from "../../services/apiClient";
+import { useState} from "react";
+import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
+import * as API from "../../services/apiService";
+import * as globalVariable from "../../services/globalVariable";
 import { useSession } from "../../context/SessionContext";
 
 function Login() {
     const navigate = useNavigate();
-    const { systemName } = useSession();
+    const { setUserId, setSystemName, setCompanyName, setIsITAdmin, setFullName } = useSession();
     const [loading, setLoading] = useState(false);
     const [errorToastVisible, setErrorToastVisible] = useState(false);
     const [formData, setFormData] = useState({ username: "", password: "" }); 
@@ -32,22 +33,35 @@ function Login() {
                 return;
             }
 
+            const config = await API.WebConfig();
+            if (config) {
+                setSystemName(config.systemName);
+                setCompanyName(config.companyName);
+            }
+
             const requestData = {
                 queryType: "USER",
                 userID: formData.username,
-                menuSystemName: systemName
+                menuSystemName: config.systemName
             };
 
-            const userCredential = await LoginCred(requestData as GetUserRequest);
-            if (userCredential) {
+            const userCredential = await API.LoginCred(requestData as GetUserRequest) as GetUserResponse[];
+
+            if (userCredential.length > 0) {
+                const user = userCredential[0]; 
+                setUserId(user.userId ?? "");
+                setFullName(user.msName ?? "");
+
+                const itAdmin = globalVariable.ITAdminChecker(user.userId ?? "", config.itadmin);
+                setIsITAdmin(itAdmin);
+
                 navigate(`${ROUTES.master}`);
-                console.log("Checkpoint 1:" + userCredential);
-                sessionStorage.setItem("UserId", "");
             } else {
                 console.error("Invalid login credentials");
                 setErrorToastVisible(true);
                 setTimeout(() => setErrorToastVisible(false), 3000);
             }
+
 
         } catch (error) {
             console.error("Login failed:", error);
@@ -57,7 +71,6 @@ function Login() {
             setLoading(false);
         }
     };
-
 
     return (
         <Container className="d-flex vh-100">
@@ -138,7 +151,7 @@ function Login() {
                                 isOpen={errorToastVisible}
                                 type="error"
                                 message="Invalid username or password. Please try again."
-                                toggle={() => setErrorToastVisible(false)}
+                                toggle={() => setErrorToastVisible(false)} timeout={300}
                             />
                         </CardBody>
                     </Card>

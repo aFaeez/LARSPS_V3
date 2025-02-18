@@ -130,3 +130,10 @@ export function IsEmptyObject(value: any): boolean {
 export function FormatCurrency(amount: number): string {
     return new Intl.NumberFormat("en-US", { style: "decimal", minimumFractionDigits: 2 }).format(amount);
 }
+
+export function ITAdminChecker(user: string, itadmin: string): number {
+    if (!user || !itadmin) return 0; // Return 0 if inputs are missing
+
+    const itAdminList = itadmin.split(',').map(admin => admin.trim()); // Convert to array
+    return itAdminList.includes(user) ? 1 : 0; // Return 1 if user is in the list, else 0
+}

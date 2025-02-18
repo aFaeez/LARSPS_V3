@@ -8,7 +8,7 @@ const FullLayout = lazy(() => import("../layouts/FullLayout.tsx"));
 const Login = lazy(() => import("../views/Login/Login.tsx"));
 const MasterPage = lazy(() => import("../views/MasterPage.tsx"));
 const MainPage = lazy(() => import("../views/MainPage.tsx"));
-const BankGuarantee = lazy(() => import("../views/DO_BG/BankGuarantee.tsx"));
+const BankGuarantee = lazy(() => import("../views/Operation/BankGuarantee.tsx"));
 
 /*****Routes******/
 const ThemeRoutes = [
@@ -30,6 +30,18 @@ const ThemeRoutes = [
             { path: ROUTES.bankGuarantee, exact: true, element: <BankGuarantee /> },
         ],
     },
+    //{
+    //    path: "/LARSPSV3", // Add the prefix here
+    //    element: <FullLayout />,
+    //    children: [
+    //        // Set up routes under /LARSPSV3
+    //        { path: "/LARSPSV3", element: <Navigate to="/LARSPSV3/login" /> }, // Default redirection
+    //        { path: "/LARSPSV3/login", element: <Login /> },
+    //        { path: "/LARSPSV3/master", element: <MasterPage /> },
+    //        { path: "/LARSPSV3/main", element: <MainPage /> },
+    //        { path: "/LARSPSV3/bankGuarantee", element: <BankGuarantee /> },
+    //    ],
+    //},
 ];
 
 export default ThemeRoutes;

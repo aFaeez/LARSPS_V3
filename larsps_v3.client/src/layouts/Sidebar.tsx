@@ -4,9 +4,9 @@ import { Link, useLocation } from "react-router-dom";
 import user1 from "../assets/images/users/user4.jpg";
 import probg from "../assets/images/bg/ytl.png";
 import { ROUTES } from "../routes/Path";
-import { fetchMenus, fetchParentMenus } from "../services/apiService";
 import { useSession } from "../context/SessionContext";
 import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse } from "../services/apiClient";
+import * as API from "../services/apiService";
 
 const navigation = [
     {
@@ -25,7 +25,7 @@ const navigation = [
 ];
 
 const Sidebar = () => {
-    const { userId, isITAdmin, systemName } = useSession();
+    const { userId, isITAdmin, systemName, fullName } = useSession();
     const [menuItemsParent, setMenuItemsParent] = useState<GetMenuParentResponse[]>([]);
     const [menuItems, setMenuItems] = useState<Record<number, GetMenuChildResponse[]>>({});
     const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
@@ -35,7 +35,7 @@ const Sidebar = () => {
     useEffect(() => {
         const loadMenusParent = async () => {
             try {
-
+                
                 const requestData: GetMenuParentRequest = {
                     queryType: "GENERATE_MENU",
                     userID: userId,
@@ -44,7 +44,7 @@ const Sidebar = () => {
                     menuSubSystemName: systemName
                 } as unknown as GetMenuParentRequest;
                 
-                const fetchedMenusParents = await fetchParentMenus(requestData);
+                const fetchedMenusParents = await API.fetchParentMenus(requestData);
                 const sortedParents = fetchedMenusParents
                     .filter((menu): menu is GetMenuParentResponse => menu.menuOrder !== null && menu.menuOrder !== undefined && menu.menuId !== undefined) // Ensure menuId exists
                     .sort((a, b) => (a.menuOrder ?? Infinity) - (b.menuOrder ?? Infinity));
@@ -63,14 +63,13 @@ const Sidebar = () => {
                             isITAdmin: isITAdmin,
                             menuParentID: parent.menuId.toString()
                         } as unknown as GetMenuChildRequest;
-                        const fetchedChildMenus = await fetchMenus(childRequest);
+                        const fetchedChildMenus = await API.fetchMenus(childRequest);
 
                         childMenusData[parent.menuId] = fetchedChildMenus
                             .filter((menu): menu is GetMenuChildResponse => menu.menuOrder !== null && menu.menuOrder !== undefined) // Ensure menuOrder exists
                             .sort((a, b) => (a.menuOrder ?? Infinity) - (b.menuOrder ?? Infinity));
                     }
                 }
-
                 setMenuItems(childMenusData);
             } catch (error) {
                 console.error("Failed to fetch menus:", error);
@@ -107,7 +106,7 @@ const Sidebar = () => {
                     </Button>
 
                 </div>
-                <div className="bg-dark text-white p-2 opacity-75">Steave Rojer</div>
+                <div className="bg-dark text-white p-2 opacity-75">{fullName}</div>
             </div>
             <div className="p-1 mt-1">
                 <Nav vertical className="sidebarNav">

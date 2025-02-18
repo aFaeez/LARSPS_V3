@@ -551,6 +551,39 @@ export class Client {
         }
         return Promise.resolve<GetMenuChildResponse[]>(null as any);
     }
+
+    /**
+     * @return OK
+     */
+    settings(): Promise<void> {
+        let url_ = this.baseUrl + "/api/settings";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSettings(_response);
+        });
+    }
+
+    protected processSettings(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class LARDashboardClient {
@@ -1021,7 +1054,7 @@ export class GetMenuChildRequest implements IGetMenuChildRequest {
     queryType?: string | undefined;
     menuSystemName?: string | undefined;
     userID?: string | undefined;
-    isITAdmin?: string | undefined;
+    isITAdmin?: number;
     menuParentID?: string | undefined;
 
     constructor(data?: IGetMenuChildRequest) {
@@ -1065,7 +1098,7 @@ export interface IGetMenuChildRequest {
     queryType?: string | undefined;
     menuSystemName?: string | undefined;
     userID?: string | undefined;
-    isITAdmin?: string | undefined;
+    isITAdmin?: number;
     menuParentID?: string | undefined;
 }
 
@@ -1125,7 +1158,7 @@ export class GetMenuParentRequest implements IGetMenuParentRequest {
     queryType?: string | undefined;
     menuSystemName?: string | undefined;
     userID?: string | undefined;
-    isITAdmin?: string | undefined;
+    isITAdmin?: number;
     menuSubSystemName?: string | undefined;
 
     constructor(data?: IGetMenuParentRequest) {
@@ -1169,7 +1202,7 @@ export interface IGetMenuParentRequest {
     queryType?: string | undefined;
     menuSystemName?: string | undefined;
     userID?: string | undefined;
-    isITAdmin?: string | undefined;
+    isITAdmin?: number;
     menuSubSystemName?: string | undefined;
 }
 

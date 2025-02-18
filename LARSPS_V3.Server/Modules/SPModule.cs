@@ -727,8 +727,7 @@ public static class ProjectStoredProcedureModule
             {
                 if (string.IsNullOrWhiteSpace(request.QueryType) ||
                     string.IsNullOrWhiteSpace(request.MenuSystemName) ||
-                    string.IsNullOrWhiteSpace(request.UserID) ||
-                    string.IsNullOrWhiteSpace(request.IsITAdmin) )
+                    string.IsNullOrWhiteSpace(request.UserID) )
                 {
                     return Results.BadRequest("Missing or invalid fields in the request body.");
                 }
@@ -779,7 +778,6 @@ public static class ProjectStoredProcedureModule
                 if (string.IsNullOrWhiteSpace(request.QueryType) ||
                     string.IsNullOrWhiteSpace(request.UserID) ||
                     string.IsNullOrWhiteSpace(request.MenuSystemName) ||
-                    string.IsNullOrWhiteSpace(request.IsITAdmin) ||
                     string.IsNullOrWhiteSpace(request.MenuParentID))
                 {
                     return Results.BadRequest("Missing or invalid fields in the request body.");
