@@ -234,7 +234,6 @@ const BankGuarantee: React.FC = () => {
 
     // Fetch data when component mounts
     useEffect(() => {
-        sessionStorage.setItem("UserId", "KBTAN");
         const UPProjectId = sessionStorage.getItem("Project");
         if (UPProjectId) {
             fetchData(UPProjectId); // Fetch data using UPProjectId
@@ -304,7 +303,7 @@ const BankGuarantee: React.FC = () => {
                         </Col>
                         <Col md="4">
                             <Card body color="warning" className="text-center" onClick={() => setSelectedFilter("Pending")}>
-                                <CardTitle tag="h5">Pending Approval</CardTitle>
+                                <CardTitle tag="h5">Pending Approvals</CardTitle>
                                 <CardText tag="h3">{totalPending}</CardText>
                             </Card>
                         </Col>

@@ -142,13 +142,13 @@ function Login() {
                             </Row>
 
                             {/* Error Toast */}
-                            {/*<ToastNotification*/}
-                            {/*    isOpen={errorToastVisible}*/}
-                            {/*    type="error"*/}
-                            {/*    message="Invalid username or password. Please try again."*/}
-                            {/*    toggle={() => setErrorToastVisible(false)}*/}
-                            {/*    timeout={3000} */}
-                            {/*/>*/}
+                            <ToastNotification
+                                isOpen={errorToastVisible}
+                                type="error"
+                                message="Invalid username or password. Please try again."
+                                toggle={() => setErrorToastVisible(false)}
+                                timeout={3000} 
+                            />
 
                         </CardBody>
                     </Card>

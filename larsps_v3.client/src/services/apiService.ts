@@ -1,6 +1,7 @@
 ﻿import axiosInstance from "./axiosInstance";
 import * as globalVariable from "./globalVariable";
-import { ProjectDTO, StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, AttachmentTable } from "../dto/dtos";
+import * as apiClient from "./apiClient";
+import { StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, AttachmentTable } from "../dto/dtos";
 
 const apiService = {
     // Fetch user projects from the stored procedure
@@ -39,10 +40,23 @@ export const WebConfig = async (): Promise<Settings> => {
 
 //----------------------------------------------------------------------------------------------------------------------
 // Fetch project data by status ID
-export const FetchProjectsByStatus = async (statusID: number): Promise<ProjectDTO[]> => {
+//export const FetchProjectsByStatus = async (statusID: number): Promise<ProjectDTO[]> => {
+//    try {
+//        const response = await axiosInstance.post("/GetProject", { intPrjStatus: statusID });
+//        //console.log("API Response for Projects:", response.data); // Debugging
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error fetching projects by status:", error);
+//        throw new Error("Failed to fetch projects. Please try again.");
+//    }
+//};
+
+export const FetchProjectsByStatus = async (requestData: apiClient.GetProjectRequest): Promise<apiClient.GetProjectResponse[]> => {
     try {
-        const response = await axiosInstance.post("/GetProject", { intPrjStatus: statusID });
-        //console.log("API Response for Projects:", response.data); // Debugging
+        const response = await axiosInstance.post<apiClient.GetProjectResponse[]>("/GetProject", requestData, {
+            headers: { "Content-Type": "application/json" }
+        });
+
         return response.data;
     } catch (error) {
         console.error("Error fetching projects by status:", error);
@@ -325,21 +339,9 @@ export const FetchGetFile = async (LaNo: string, project: string): Promise<Attac
     }
 };
 
-import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse, GetUserRequest,GetUserResponse } from "./apiClient";
-
-//export const LoginCred = async (credentials: { userid: string; password: string }): Promise<User> => {
-//    try {
-//        const response = await axiosInstance.post("/GetUser", credentials);
-//        return response.data;
-//    } catch (error) {
-//        console.error("Error during login:", error);
-//        throw new Error("Failed to login. Please try again.");
-//    }
-//};
-
-export const LoginCred = async (requestData: GetUserRequest): Promise<GetUserResponse[]> => {
+export const LoginCred = async (requestData: apiClient.GetUserRequest): Promise<apiClient.GetUserResponse[]> => {
     try {
-        const response = await axiosInstance.post<GetUserResponse[]>("/GetUser", requestData, {
+        const response = await axiosInstance.post<apiClient.GetUserResponse[]>("/GetUser", requestData, {
             headers: { "Content-Type": "application/json" }
         });
 
@@ -351,9 +353,9 @@ export const LoginCred = async (requestData: GetUserRequest): Promise<GetUserRes
 };
 
 //parent
-export const fetchParentMenus = async (requestData: GetMenuParentRequest): Promise<GetMenuParentResponse[]> => {
+export const fetchParentMenus = async (requestData: apiClient.GetMenuParentRequest): Promise<apiClient.GetMenuParentResponse[]> => {
     try {
-        const response = await axiosInstance.post<GetMenuParentResponse[]>("/GetMenuParent", requestData, {
+        const response = await axiosInstance.post<apiClient.GetMenuParentResponse[]>("/GetMenuParent", requestData, {
             headers: { "Content-Type": "application/json" }
         });
 
@@ -366,9 +368,9 @@ export const fetchParentMenus = async (requestData: GetMenuParentRequest): Promi
 
 
 //child
-export const fetchMenus = async (requestData: GetMenuChildRequest): Promise<GetMenuChildResponse[]> => {
+export const fetchMenus = async (requestData: apiClient.GetMenuChildRequest): Promise<apiClient.GetMenuChildResponse[]> => {
     try {
-        const response = await axiosInstance.post<GetMenuChildResponse[]>("/GetMenuChild", requestData, {
+        const response = await axiosInstance.post<apiClient.GetMenuChildResponse[]>("/GetMenuChild", requestData, {
             headers: { "Content-Type": "application/json" }
         });
 

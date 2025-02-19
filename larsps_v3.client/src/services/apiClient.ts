@@ -21,7 +21,7 @@ export class Client {
     /**
      * @return OK
      */
-    getProject(body: { [key: string]: JsonNode; }): Promise<void> {
+    getProject(body: GetProjectRequest): Promise<GetProjectResponse[]> {
         let url_ = this.baseUrl + "/GetProject";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -32,6 +32,7 @@ export class Client {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -40,19 +41,37 @@ export class Client {
         });
     }
 
-    protected processGetProject(response: Response): Promise<void> {
+    protected processGetProject(response: Response): Promise<GetProjectResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GetProjectResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            return throwException("Internal Server Error", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<GetProjectResponse[]>(null as any);
     }
 
     /**
@@ -1256,6 +1275,94 @@ export interface IGetMenuParentResponse {
     menuParentId?: number;
     menuURL?: string | undefined;
     menuOrder?: number;
+}
+
+export class GetProjectRequest implements IGetProjectRequest {
+    userID?: string | undefined;
+    projStatus?: number;
+
+    constructor(data?: IGetProjectRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.userID = _data["userID"];
+            this.projStatus = _data["projStatus"];
+        }
+    }
+
+    static fromJS(data: any): GetProjectRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new GetProjectRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["userID"] = this.userID;
+        data["projStatus"] = this.projStatus;
+        return data;
+    }
+}
+
+export interface IGetProjectRequest {
+    userID?: string | undefined;
+    projStatus?: number;
+}
+
+export class GetProjectResponse implements IGetProjectResponse {
+    proProjectId?: string | undefined;
+    proProjectDesc?: string | undefined;
+    proProjectType?: string | undefined;
+    projWithFS?: number;
+
+    constructor(data?: IGetProjectResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.proProjectId = _data["proProjectId"];
+            this.proProjectDesc = _data["proProjectDesc"];
+            this.proProjectType = _data["proProjectType"];
+            this.projWithFS = _data["projWithFS"];
+        }
+    }
+
+    static fromJS(data: any): GetProjectResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new GetProjectResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["proProjectId"] = this.proProjectId;
+        data["proProjectDesc"] = this.proProjectDesc;
+        data["proProjectType"] = this.proProjectType;
+        data["projWithFS"] = this.projWithFS;
+        return data;
+    }
+}
+
+export interface IGetProjectResponse {
+    proProjectId?: string | undefined;
+    proProjectDesc?: string | undefined;
+    proProjectType?: string | undefined;
+    projWithFS?: number;
 }
 
 export class GetUserRequest implements IGetUserRequest {

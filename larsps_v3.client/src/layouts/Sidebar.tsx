@@ -17,14 +17,7 @@ const Sidebar = () => {
     const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
     const { routes } = useFetchMenuData();
 
-    const navigation = [
-        {
-            title: "Dashboard",
-            href: routes["dashboard"], 
-            icon: "bi bi-speedometer2",
-        },
-    ];
-
+    
     useEffect(() => {
         const loadMenusParent = async () => {
             try {

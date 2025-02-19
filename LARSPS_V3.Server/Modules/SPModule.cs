@@ -18,46 +18,86 @@ public static class ProjectStoredProcedureModule
     public static void GetSP(this IEndpointRouteBuilder app)
     {
         #region Main Page Project
-        app.MapPost("/GetProject", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
+        //app.MapPost("/GetProject", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
+        //{
+        //    try
+        //    {
+        //        // Default userId
+        //        var userIdString = "KHTAN";
+
+        //        // Get the intPrjStatus from request body or default to 1
+        //        var statusIdInt = body.TryGetPropertyValue("intPrjStatus", out var statusIdNode)
+        //            ? statusIdNode?.GetValue<int>() ?? 1
+        //            : 1;
+
+        //        // Check if either value is invalid (e.g., null or empty)
+        //        if (string.IsNullOrEmpty(userIdString) || statusIdInt == null)
+        //        {
+        //            return Results.BadRequest("Invalid UserID or intPrjStatus.");
+        //        }
+
+        //        // SQL query to retrieve project data
+        //        var sql = @"
+        //        EXEC [dbo].[spLS_GetProject]
+        //        @UserID = @UserID,
+        //        @intPrjStatus = @intPrjStatus";
+
+        //        var parameters = new[] {
+        //            new Microsoft.Data.SqlClient.SqlParameter("@UserID", userIdString),
+        //            new Microsoft.Data.SqlClient.SqlParameter("@intPrjStatus", statusIdInt)
+        //        };
+
+        //        // Retrieve the result list by executing the stored procedure
+        //        var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
+
+        //        // Return the project data as a response
+        //        return Results.Ok(resultList);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Results.Problem(detail: ex.Message, statusCode: 500); // Return detailed error message
+        //    }
+        //});
+
+        app.MapPost("/GetProject", async ([FromServices] DataBaseContext dbContext, [FromBody] GetProjectRequest request) =>
         {
             try
             {
-                // Default userId
-                var userIdString = "KHTAN";
-
-                // Get the intPrjStatus from request body or default to 1
-                var statusIdInt = body.TryGetPropertyValue("intPrjStatus", out var statusIdNode)
-                    ? statusIdNode?.GetValue<int>() ?? 1
-                    : 1;
-
-                // Check if either value is invalid (e.g., null or empty)
-                if (string.IsNullOrEmpty(userIdString) || statusIdInt == null)
+                if (string.IsNullOrWhiteSpace(request.UserID))
                 {
-                    return Results.BadRequest("Invalid UserID or intPrjStatus.");
+                    return Results.BadRequest("Missing or invalid fields in the request body.");
                 }
 
-                // SQL query to retrieve project data
                 var sql = @"
                 EXEC [dbo].[spLS_GetProject]
                 @UserID = @UserID,
-                @intPrjStatus = @intPrjStatus";
+                @projStatus = @projStatus";
 
                 var parameters = new[] {
-                    new Microsoft.Data.SqlClient.SqlParameter("@UserID", userIdString),
-                    new Microsoft.Data.SqlClient.SqlParameter("@intPrjStatus", statusIdInt)
+                    new Microsoft.Data.SqlClient.SqlParameter("@UserID", request.UserID),
+                    new Microsoft.Data.SqlClient.SqlParameter("@projStatus", request.projStatus)
                 };
 
-                // Retrieve the result list by executing the stored procedure
                 var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
 
-                // Return the project data as a response
-                return Results.Ok(resultList);
+                var list = resultList.Select(row => new GetProjectResponse
+                {
+                    ProProjectId = row["ProProjectId"]?.ToString() ?? string.Empty,
+                    ProProjectDesc = row["ProProjectDesc"]?.ToString() ?? string.Empty,
+                    ProProjectType = row["ProProjectType"]?.ToString() ?? string.Empty,
+                    ProjWithFS = row["ProjWithFS"] != DBNull.Value ? Convert.ToInt32(row["ProjWithFS"]) : 0
+                }).ToList();
+
+                return Results.Ok(list);
             }
             catch (Exception ex)
             {
-                return Results.Problem(detail: ex.Message, statusCode: 500); // Return detailed error message
+                return Results.Problem(detail: ex.Message, statusCode: 500);
             }
-        });
+        }).WithName("GetProject")
+        .Produces<List<GetProjectResponse>>(200)
+        .Produces(400)
+        .Produces(500);
 
         app.MapPost("/GetProjectStatus", async ([FromServices] DataBaseContext dbContext) =>
         {

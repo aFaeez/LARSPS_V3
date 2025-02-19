@@ -1,9 +1,10 @@
 ﻿import { Row, Col, Card, CardTitle, CardBody, Badge, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
 import { useState, startTransition, useEffect } from "react";
-
+import { useSession } from "../../context/SessionContext";
+import { GetProjectRequest, GetProjectResponse } from "../../services/apiClient";
 import { FetchProjectsByStatus, FetchProjectStatusOptions } from "../../services/apiService";
-import { ProjectDTO, StatusOptionDTO } from "../../dto/dtos";
+import { StatusOptionDTO } from "../../dto/dtos";
 import { UseProject } from "../../services/globalVariable";
 
 interface ProjectsTableProps {
@@ -11,8 +12,8 @@ interface ProjectsTableProps {
 }
 
 const ProjectsTable: React.FC<ProjectsTableProps> = ({ closeModal }) => {
-
-    const [data, setData] = useState<ProjectDTO[]>([]);
+    const { userId } = useSession();
+    const [data, setData] = useState<GetProjectResponse[]>([]);
     const [statusOptions, setStatusOptions] = useState<StatusOptionDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,8 +34,21 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ closeModal }) => {
         try {
             setLoading(true);
             setError(null);
-            const projects = await FetchProjectsByStatus(statusID);
-            startTransition(() => setData(projects));
+            const requestData: GetProjectRequest = {
+                userID: userId,
+                projStatus: statusID
+            } as unknown as GetProjectRequest;
+
+            const projects = await FetchProjectsByStatus(requestData);
+
+            const transformedProjects: GetProjectResponse[] = projects.map((project) => ({
+                proProjectId: project.proProjectId,
+                proProjectDesc: project.proProjectDesc,
+                proProjectType: project.proProjectType,
+                projWithFS: project.projWithFS,
+            })) as GetProjectResponse[];
+
+            startTransition(() => setData(transformedProjects));
         } catch (err: any) {
             setError(err.message || "An error occurred while fetching project data");
         } finally {
@@ -52,11 +66,11 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ closeModal }) => {
     };
 
     const { setSelectedProject } = UseProject();
-    const handleRowClick = (project: ProjectDTO) => {
+    const handleRowClick = (project: GetProjectResponse) => {
         setSelectedProject(project);
-        if (project.UPProjectId) {
-            sessionStorage.setItem("Project", project.UPProjectId);
-            sessionStorage.setItem("ProjectName", project.ProProjectDesc || '');
+        if (project.proProjectId) {
+            sessionStorage.setItem("Project", project.proProjectId);
+            sessionStorage.setItem("ProjectName", project.proProjectDesc || "");
         }
         if (closeModal) {
             closeModal();
@@ -65,19 +79,19 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ closeModal }) => {
     };
 
 
-    const columns: MRT_ColumnDef<ProjectDTO>[] = [
+    const columns: MRT_ColumnDef<GetProjectResponse>[] = [
         {
-            accessorKey: "UPProjectId",
+            accessorKey: "proProjectId",
             header: "Project ID",
         },
         {
-            accessorKey: "ProProjectDesc",
+            accessorKey: "proProjectDesc",
             header: "Project Description",
             size: 200,
             minSize: 500,
         },
         {
-            accessorKey: "ProProjectType",
+            accessorKey: "proProjectType",
             header: "Project Type",
             Cell: ({ cell }) => {
                 const valueType = cell.getValue();
@@ -92,7 +106,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ closeModal }) => {
             },
         },
         {
-            accessorKey: "ProjWithFS",
+            accessorKey: "projWithFS",
             header: "With FS",
             Cell: ({ cell }) => {
                 const valueFS = cell.getValue();
