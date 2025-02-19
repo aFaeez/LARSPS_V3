@@ -1,36 +1,29 @@
 import { useState, useEffect } from "react";
 import { Button, Nav, NavItem } from "reactstrap";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import user1 from "../assets/images/users/user4.jpg";
 import probg from "../assets/images/bg/ytl.png";
-import { ROUTES } from "../routes/Path";
 import { useSession } from "../context/SessionContext";
 import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMenuParentResponse } from "../services/apiClient";
 import * as API from "../services/apiService";
+import useFetchMenuData from "../routes/Path"; 
 
-const navigation = [
-    {
-        title: "Dashboard",
-        href: ROUTES.main,
-        icon: "bi bi-speedometer2",
-    },
-    {
-        title: "Daily Operation",
-        href: "/dailyoperation",
-        icon: "bi bi-calendar-day",
-        subMenu: [
-            { title: "Bank Guarantee/Advance Payment Bond", href: ROUTES.bankGuarantee }
-        ]
-    },
-];
+
 
 const Sidebar = () => {
     const { userId, isITAdmin, systemName, fullName } = useSession();
     const [menuItemsParent, setMenuItemsParent] = useState<GetMenuParentResponse[]>([]);
     const [menuItems, setMenuItems] = useState<Record<number, GetMenuChildResponse[]>>({});
     const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
-    const [openMenu, setOpenMenu] = useState<number | null>(null);
-    const location = useLocation();
+    const { routes } = useFetchMenuData();
+
+    const navigation = [
+        {
+            title: "Dashboard",
+            href: routes["dashboard"], 
+            icon: "bi bi-speedometer2",
+        },
+    ];
 
     useEffect(() => {
         const loadMenusParent = async () => {
@@ -79,11 +72,6 @@ const Sidebar = () => {
         loadMenusParent();
     }, []);
 
-    // Function to toggle submenu
-    const toggleMenu = (index: number) => {
-        setOpenMenu(openMenu === index ? null : index);
-    };
-
     const showMobilemenu = () => {
         document.getElementById("sidebarArea")?.classList.toggle("showSidebar");
     };
@@ -109,46 +97,23 @@ const Sidebar = () => {
                 <div className="bg-dark text-white p-2 opacity-75">{fullName}</div>
             </div>
             <div className="p-1 mt-1">
-                <Nav vertical className="sidebarNav">
-                    {/* Static Navigation */}
-                    {navigation.map((navi, index) => (
-                        <NavItem key={index} className="sidenav-bg">
-                            {navi.subMenu ? (
-                                // Item has a submenu ? Toggle submenu
-                                <div
-                                    className={location.pathname === navi.href ? "active nav-link py-3" : "nav-link text-secondary py-3"}
-                                    onClick={() => toggleMenu(index)}
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    <i className={navi.icon}></i>
-                                    <span className="ms-1">{navi.title}</span>
-                                    <i className={`bi ms-auto ${openMenu === index ? "bi-chevron-up" : "bi-chevron-down"}`}></i>
-                                </div>
-                            ) : (
-                                // No submenu ? Normal link
-                                <Link to={navi.href} className="nav-link text-secondary py-3">
-                                    <i className={navi.icon}></i>
-                                    <span className="ms-1">{navi.title}</span>
-                                </Link>
-                            )}
-
-                            {/* Static Submenu */}
-                            {openMenu === index &&
-                                navi.subMenu?.map((sub, subIndex) => (
-                                    <NavItem key={subIndex} className="ms-3">
-                                        <Link to={sub.href} className="nav-link text-secondary">{sub.title}</Link>
-                                    </NavItem>
-                                ))}
-                        </NavItem>
-                    ))}
-                </Nav>
-
-
                 <Nav className="d-flex flex-column">
-                    {menuItemsParent.length > 0 &&
-                        menuItemsParent.map((parentMenu) => (
+                    {/* Root-Level Dashboard */}
+                    {menuItemsParent.some(parent => parent.menuName === "DASHBOARD") && (
+                        <NavItem className="sidenav-bg">
+                            <Link to={routes["dashboard"]} className="nav-link text-secondary py-3 d-flex align-items-center">
+                                <i className="bi bi-speedometer2 me-2"></i> {/* Dashboard Icon */}
+                                <span>Dashboard</span>
+                            </Link>
+                        </NavItem>
+                    )}
+
+                    {/* Other Parent Menus */}
+                    {menuItemsParent
+                        .filter(parentMenu => parentMenu.menuName !== "DASHBOARD" && parentMenu.menuName !== "MASTER (V3)") // Exclude Dashboard Master v3
+                        .map((parentMenu) => (
                             <div key={parentMenu.menuId} className="mb-2">
-                                {/* Parent Menu - Single Line */}
+                                {/* Parent Menu */}
                                 <NavItem className="sidenav-bg d-flex align-items-center justify-content-between">
                                     <span className="nav-link text-secondary">{parentMenu.menuName}</span>
                                     <i
@@ -161,7 +126,7 @@ const Sidebar = () => {
                                     ></i>
                                 </NavItem>
 
-                                {/* Child Menus - Appears Under Parent */}
+                                {/* Child Menus */}
                                 {openMenus[parentMenu.menuId] && (
                                     <div className="ms-4">
                                         {menuItems[parentMenu.menuId]?.map((menu: GetMenuChildResponse) => (
@@ -174,6 +139,7 @@ const Sidebar = () => {
                             </div>
                         ))}
                 </Nav>
+
 
             </div>
         </div>

@@ -1,16 +1,15 @@
 ﻿import { Col, Card, CardBody, Button, Row, Container, Form, FormGroup, Label, Input } from "reactstrap";
 import logo from "../../assets/images/logos/SPYTL.jpg";
-import { ROUTES } from "../../routes/Path";
-import { useNavigate } from "react-router-dom";
 import ToastNotification from '../../layouts/ToastMsg';
 import { useState} from "react";
 import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
 import * as API from "../../services/apiService";
 import * as globalVariable from "../../services/globalVariable";
 import { useSession } from "../../context/SessionContext";
+import useDynamicNavigation from "../../routes/useDynamicNavigation";
 
 function Login() {
-    const navigate = useNavigate();
+    const { goTo } = useDynamicNavigation();
     const { setUserId, setSystemName, setCompanyName, setIsITAdmin, setFullName } = useSession();
     const [loading, setLoading] = useState(false);
     const [errorToastVisible, setErrorToastVisible] = useState(false);
@@ -55,18 +54,14 @@ function Login() {
                 const itAdmin = globalVariable.ITAdminChecker(user.userId ?? "", config.itadmin);
                 setIsITAdmin(itAdmin);
 
-                navigate(`${ROUTES.master}`);
+                goTo("master (v3)");
             } else {
                 console.error("Invalid login credentials");
                 setErrorToastVisible(true);
-                setTimeout(() => setErrorToastVisible(false), 3000);
             }
-
-
         } catch (error) {
             console.error("Login failed:", error);
             setErrorToastVisible(true);
-            setTimeout(() => setErrorToastVisible(false), 3000);
         } finally {
             setLoading(false);
         }
@@ -147,12 +142,14 @@ function Login() {
                             </Row>
 
                             {/* Error Toast */}
-                            <ToastNotification
-                                isOpen={errorToastVisible}
-                                type="error"
-                                message="Invalid username or password. Please try again."
-                                toggle={() => setErrorToastVisible(false)} timeout={300}
-                            />
+                            {/*<ToastNotification*/}
+                            {/*    isOpen={errorToastVisible}*/}
+                            {/*    type="error"*/}
+                            {/*    message="Invalid username or password. Please try again."*/}
+                            {/*    toggle={() => setErrorToastVisible(false)}*/}
+                            {/*    timeout={3000} */}
+                            {/*/>*/}
+
                         </CardBody>
                     </Card>
                 </Col>

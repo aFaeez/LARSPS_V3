@@ -3,7 +3,7 @@ import { useRoutes } from "react-router-dom";
 import Themeroutes from './routes/Router';
 
 const App = () => {
-    const routing = useRoutes(Themeroutes);
+    const routing = useRoutes(Themeroutes());
 
     return (
         <Suspense fallback={<div>Loading...</div>}>

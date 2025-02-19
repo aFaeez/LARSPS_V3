@@ -6,23 +6,25 @@ interface ToastMsgProps {
     type: "success" | "error";
     message: string;
     toggle: () => void;
-    timeout: number;
+    timeout?: number;  // Optional prop
 }
 
-const ToastMsg = ({ isOpen, type, message, toggle, timeout = 3000 }: ToastMsgProps) => {
+const ToastMsg = ({ isOpen, type, message, toggle, timeout }: ToastMsgProps) => {
+    const finalTimeout = timeout ?? 3000;  // Ensure timeout is never undefined
+
     useEffect(() => {
         if (isOpen) {
             const timer = setTimeout(() => {
                 toggle();
-            }, timeout);
+            }, finalTimeout);
 
             return () => clearTimeout(timer);
         }
-    }, [isOpen, timeout, toggle]);
+    }, [isOpen, finalTimeout, toggle]);
 
     return (
         <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 9999 }}>
-            <Toast isOpen={isOpen} fade={true} timeout={timeout}>
+            <Toast isOpen={isOpen} timeout={finalTimeout}>
                 <ToastHeader icon={type === "success" ? "success" : "danger"} toggle={toggle}>
                     {type === "success" ? "Success" : "Error"}
                 </ToastHeader>

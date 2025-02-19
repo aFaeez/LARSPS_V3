@@ -70,7 +70,7 @@ const Header = () => {
                     </DropdownToggle>
                     <DropdownMenu>
                         <DropdownItem>
-                            <Link to="/login" className="nav-link">Logout</Link>
+                            <Link to="/" className="nav-link">Logout</Link>
                         </DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
