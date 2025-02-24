@@ -3,25 +3,36 @@ import { useState, useEffect } from "react";
 import { useSession } from "../../context/SessionContext";
 import * as API from "../../services/apiService";
 import { SafeRender, SafeRenderDate, GetCurrentDateTime, GetUserIPAddress, SafeRenderDatewithTime } from "../../services/globalVariable";
+import { SubmitBGRequest } from "../../services/apiClient";
+import * as globalVariable from "../../services/globalVariable";
 import { BGSub, SubBGTemplateProps } from "../../dto/dtos";
 import LoadingModal from '../../layouts/LoadingModal';
-import ToastNotification from '../../layouts/ToastMsg';
+import ToastMsg from '../../layouts/ToastMsg';
 import Uploader from "./Uploader";
 
+interface FormErrors {
+    [key: string]: string;
+}
+
 const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
-    const { companyName } = useSession();
+    const { companyName, userId } = useSession();
     const [bgSub, setBGSub] = useState<BGSub[]>([]); // State to hold fetched data
     const [loading, setLoading] = useState(false); // State for loading indicator
-    const [toastVisible, setToastVisible] = useState(false); // Success toast visibility state
-    const [errorToastVisible, setErrorToastVisible] = useState(false); // Error toast visibility state
-    const [error, setError] = useState<string | null>(null);
-    const [errorMessages, setErrorMessages] = useState<any>({}); // State to hold error messages
+
+    const [errorMessages, setErrorMessages] = useState<FormErrors>({});
     const [formData, setFormData] = useState<BGSub[]>([]);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalType, setModalType] = useState<"BG" | "PBRL" | null>(null);
     const [laNo, setLaNo] = useState<string | null>(null);
     const [projectId, setProjectId] = useState<string | null>(null);
+
+    // Show Toast Function
+    const showToast = (type: "success" | "error", message: string) => {
+        setToast({ visible: true, type, message });
+        setTimeout(() => setToast({ visible: false, type, message: "" }), 3000);
+    };
+    const [toast, setToast] = useState({ visible: false, type: "error" as "success" | "error", message: "" });
 
     // Function to open modal and store parameters
     const openModal = (type: "BG" | "PBRL", laNo: string, projectId: string) => {
@@ -33,14 +44,14 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
 
     // Fetch data from API
     const fetchBGSub = async () => {
-        setError(null);
-
+        setLoading(true);
         try {
             const BG = await API.FetchBGSub(strLA);
             setBGSub(BG);
             setFormData(BG);
-        } catch (err: any) {
-            setError(err.message || "An error occurred while fetching data");
+        } catch (err) {
+            console.error("Something went wrong:", err);
+            showToast("error", "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -62,65 +73,71 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
         setFormData(updatedFormData);
     };
 
-
-
     const handleSubmit = async (e: React.FormEvent, BGLaNo: string | number) => {
         e.preventDefault(); // Prevent default form submission
         setLoading(true); // Show loading indicator
 
-        if (validateForm()) {
-            const userId = sessionStorage.getItem("UserId");
-            if (userId) {
-                const ipAddress = await GetUserIPAddress();
-                const currentDate = GetCurrentDateTime();
+        try {
+            if (validateForm()) {
+                if (userId && companyName) {
+                    const ipAddress = await GetUserIPAddress();
+                    const currentDate = GetCurrentDateTime();
 
-                // Find the specific item to update
-                const targetItemIndex = formData.findIndex((item) => item.BGLaNo === BGLaNo);
+                    // Find the specific item to update
+                    const targetItemIndex = formData.findIndex((item) => item.BGLaNo === BGLaNo);
 
-                if (targetItemIndex !== -1) {
-                    const updatedItem = {
-                        ...formData[targetItemIndex],
-                        BGQSAppUserId: userId,
-                        BGQSAppUserIPAddr: ipAddress,
-                        BGQSAppDate: currentDate,
-                    };
+                    if (targetItemIndex !== -1) {
+                        const targetItem = formData[targetItemIndex];
 
-                    try {
-                        if (companyName) {
-                            await API.SubmitBG([updatedItem], companyName); 
+                        const updatedItem: SubmitBGRequest = {
+                            bgLaNo: targetItem.BGLaNo,
+                            bgAmount: targetItem.BGAmount,
+                            bgDate: globalVariable.validateAndISOFormatDate(targetItem.BGDate),
+                            bgExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.BGExpiryDate),
+                            bgToExtend: targetItem.BGToExtend === "Yes" ? "1" : "0",
+                            bgExtDate: globalVariable.validateAndISOFormatDate(targetItem.BGExtDate),
+                            bgProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.BGProvidedDate),
+                            bgRefNo: targetItem.BGRefNo,
+                            bgBank: targetItem.BGBank,
+                            hawDateExt: globalVariable.validateAndISOFormatDate(targetItem.HawDateExt),
+                            attachment: targetItem.Attachment,
+                            hawProjId: targetItem.HawProjId,
+                            hawRecId: targetItem.HawRecId,
+                            pbReplacementLetter: targetItem.PBReplacementLetter,
+                            pbReplacementLetterOption: targetItem.PBReplacementLetterOption,
+                            bgUserId: userId,
+                            bgRecDate: globalVariable.validateAndISOFormatDate(currentDate),
+                            bgRecId: targetItem.BGRecId,
+                            bgUserIPAddr: ipAddress,
+                            bgCompId : companyName,
+                        };
+
+                        const response = await API.SubmitBG(updatedItem);
+
+                        if (response.success) {
+                            showToast("success", "Bank Guarantee submitted successfully!");
+                        } else {
+                            showToast("error", `Failed: ${response.message}`);
                         }
-
-                        setFormData((prevFormData) => {
-                            const newFormData = [...prevFormData];
-                            newFormData[targetItemIndex] = updatedItem;
-                            return newFormData;
-                        });
-
-                        setToastVisible(true); // Show success toast
-                        setTimeout(() => setToastVisible(false), 3000); // Hide success toast after 3 seconds
-                    } catch (error) {
-                        console.error("Error submitting data:", error); // Debugging log
-                        setErrorToastVisible(true); // Show error toast
-                        setTimeout(() => setErrorToastVisible(false), 3000); // Hide error toast after 3 seconds
+                    } else {
+                        console.error(`Item with BGLaNo "${BGLaNo}" not found.`);
+                        showToast("error", "Something went wrong. Please try again.");
                     }
-                } else {
-                    console.error(`Item with BGLaNo "${BGLaNo}" not found.`);
-                    setErrorToastVisible(true);
-                    setTimeout(() => setErrorToastVisible(false), 3000); // Show error toast
                 }
+            } else {
+                showToast("error", "Form is not complete. Please try again.");
             }
-        } else {
-            setErrorToastVisible(true); // Show validation error toast
-            setTimeout(() => setErrorToastVisible(false), 3000);
-        }
 
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            showToast("error", "Something went wrong. Please try again.");
+        }
         setLoading(false); // Hide loading indicator
     };
 
-
-
+    
     const validateForm = () => {
-        const errors: any = {}; // Object to hold error messages
+        const errors: FormErrors = {}; // Object to hold error messages
         let isValid = true;
 
         // Iterate through each item in the formData (array)
@@ -142,18 +159,13 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                 isValid = false;
             }
         });
-
-        setErrorMessages(errors); // Set the error messages state to show in the UI
+        setErrorMessages(errors);
         return isValid;
     };
 
-
     useEffect(() => {
         fetchBGSub();
-        if (error) {
-            console.error("Error:", error);
-        }
-    }, [error]);
+    }, []);
 
     return (
         <Card>
@@ -224,12 +236,12 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                                         onChange={(e) => handleInputChange(index, "BGDate", e.target.value)}
                                     />
                                 </Col>
-                                <Label for={`BGExpDate-${index}`} sm={2}>BG Expiry Date</Label>
+                                <Label for={`BGExpiryDate-${index}`} sm={2}>BG Expiry Date</Label>
                                 <Col sm={4}>
                                     <Input
                                         type="date"
                                         name="dateexp"
-                                        id={`BGExpDate-${index}`}
+                                        id={`BGExpiryDate-${index}`}
                                         placeholder="BG Expiry Date"
                                         value={SafeRenderDate(item.BGExpiryDate)}
                                         onChange={(e) => handleInputChange(index, "BGExpiryDate", e.target.value)}
@@ -281,7 +293,7 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                             <FormGroup row>
                                 <Label for={`attachment-${index}`} sm={2}>Attachment</Label>
                                 <Col sm={4}>
-                                   
+
                                     <Button
                                         style={{
                                             backgroundColor: "#f8f9fa",
@@ -312,7 +324,7 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                             <FormGroup row>
                                 <Label for={`pbrl-${index}`} sm={2}>PB Replacement Letter</Label>
                                 <Col sm={4}>
-                                    
+
                                     <Button
                                         style={{
                                             backgroundColor: "#f8f9fa",
@@ -344,14 +356,27 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                                 </Col>
                             </FormGroup>
 
-                            <FormGroup row>
-                                <Label sm={2}>Remarks</Label>
+
+                            <FormGroup row className="align-items-center">
+                                <Label sm={2} className="fw-bold">Remarks</Label>
                                 <Col sm={10}>
-                                    <FormText color="dark">
-                                        {SafeRender(item.BGUserId) ? `Edited by ${SafeRender(item.BGUserId)} on ${SafeRenderDatewithTime(item.BGRecDate)}` : ""}
-                                    </FormText>
+                                    <div className="p-2 rounded border">
+                                        <FormText className="d-block">
+                                            {SafeRender(item.BGUserId) ? (
+                                                <>
+                                                    <span className="fw-semibold">
+                                                        Edited by {SafeRender(item.BGUserId)}
+                                                    </span>{" "}
+                                                    on {SafeRenderDatewithTime(item.BGRecDate)}
+                                                </>
+                                            ) : (
+                                                <span>No remarks available</span>
+                                            )}
+                                        </FormText>
+                                    </div>
                                 </Col>
                             </FormGroup>
+
 
                             <FormGroup row>
                                 <Col sm={{ size: 2, offset: 2 }}>
@@ -364,21 +389,15 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                     {/* Loading Modal */}
                     <LoadingModal isOpen={loading} />
 
-                    {/* Success Toast */}
-                    <ToastNotification
-                        isOpen={toastVisible}
-                        type="success"
-                        message="Form submitted successfully!"
-                        toggle={() => setToastVisible(false)}
+                    {/* Toast Notification */}
+                    <ToastMsg
+                        isOpen={toast.visible}
+                        type={toast.type}
+                        message={toast.message}
+                        toggle={() => setToast({ visible: false, type: "error", message: "" })}
+                        timeout={3000}
                     />
 
-                    {/* Error Toast */}
-                    <ToastNotification
-                        isOpen={errorToastVisible}
-                        type="error"
-                        message="Something went wrong. Please try again."
-                        toggle={() => setErrorToastVisible(false)}
-                    />
                 </div>
             </CardBody>
 

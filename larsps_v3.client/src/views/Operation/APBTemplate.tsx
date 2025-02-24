@@ -2,26 +2,35 @@
 import { Col, CardBody, Button, Card, Form, FormGroup, Label, Input, FormText,CardTitle } from "reactstrap";
 import { APB, APBTemplateProps } from "../../dto/dtos";
 import LoadingModal from '../../layouts/LoadingModal';
-import ToastNotification from '../../layouts/ToastMsg';
+import ToastMsg from '../../layouts/ToastMsg';
 import * as globalVariable from "../../services/globalVariable";
 import * as API from "../../services/apiService";
 import Uploader from "./Uploader";
 import { useSession } from "../../context/SessionContext";
+import { SubmitAPBRequest } from "../../services/apiClient";
+
+interface FormErrors {
+    [key: string]: string;
+}
 
 const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
-    const { companyName } = useSession();
+    const { companyName, userId } = useSession();
     const [apb, setAPB] = useState<APB[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [errorMessages, setErrorMessages] = useState<any>({}); 
+    const [errorMessages, setErrorMessages] = useState<FormErrors>({}); 
     const [formData, setFormData] = useState<APB[]>([]); 
-    const [toastVisible, setToastVisible] = useState(false);
-    const [errorToastVisible, setErrorToastVisible] = useState(false); 
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalType, setModalType] = useState<"APB">();
     const [laNo, setLaNo] = useState<string | null>(null);
     const [projectId, setProjectId] = useState<string | null>(null);
+
+    // Show Toast Function
+    const showToast = (type: "success" | "error", message: string) => {
+        setToast({ visible: true, type, message });
+        setTimeout(() => setToast({ visible: false, type, message: "" }), 3000);
+    };
+    const [toast, setToast] = useState({ visible: false, type: "error" as "success" | "error", message: "" });
 
     const openModal = (type: "APB", laNo: string, projectId: string) => {
         setModalType(type);
@@ -33,7 +42,6 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
     // Fetch data from API
     const fetchAPB = async () => {
         setLoading(true);
-        setError(null);
 
         try {
             if (companyName) {
@@ -41,8 +49,9 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
                 setAPB(APB);
                 setFormData(APB);
             }
-        } catch (err: any) {
-            setError(err.message || "An error occurred while fetching data");
+        } catch (err) {
+            console.error("Something went wrong:", err);
+            showToast("error", "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -52,62 +61,90 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
         e.preventDefault();
         setLoading(true);
 
+        try {
         if (validateForm()) {
-            const userId = sessionStorage.getItem("UserId");
-            if (userId) {
+            if (userId && companyName) {
                 const ipAddress = await globalVariable.GetUserIPAddress();
                 const currentDate = globalVariable.GetCurrentDateTime();
 
                 // Find the specific item to update
                 const targetItemIndex = formData.findIndex((item) => item.APBLaNo === APBLaNo);
 
+
                 if (targetItemIndex !== -1) {
-                    const updatedItem = {
-                        ...formData[targetItemIndex],
-                        APBQSAppUserId: userId,
-                        APBQSAppUserIPAddr: ipAddress,
-                        APBQSAppDate: currentDate,
+                    const targetItem = formData[targetItemIndex];
+
+                    const updatedItem: SubmitAPBRequest = {
+                        apbLaNo: targetItem.APBLaNo,
+                        apbAmount: targetItem.APBAmount,
+                        apbDate: globalVariable.validateAndISOFormatDate(targetItem.APBDate),
+                        apbExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.APBExpiryDate),
+                        apbExtDate: globalVariable.validateAndISOFormatDate(targetItem.APBExtDate),
+                        apbProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.APBProvidedDate),
+                        apbRefNo: targetItem.APBRefNo,
+                        apbBank: targetItem.APBBank,
+                        apbUserId: userId,
+                        apbRecDate: globalVariable.validateAndISOFormatDate(currentDate),
+                        apbRecId: targetItem.APBRecId,
+                        apbUserIPAddr: ipAddress,
+                        apbCompId: companyName,
                     };
 
-                    try {
+                    const response = await API.SubmitAPB(updatedItem);
 
-                        if (companyName) {
-                            await API.SubmitAPB([updatedItem], companyName); // Submit only the updated row
-                        }
-
-                        // Update the state after successful submission
-                        setFormData((prevFormData) => {
-                            const newFormData = [...prevFormData];
-                            newFormData[targetItemIndex] = updatedItem;
-                            return newFormData;
-                        });
-
-                        setToastVisible(true); // Show success toast
-                        setTimeout(() => setToastVisible(false), 3000); // Hide success toast after 3 seconds
-                    } catch (error) {
-                        console.error("Error submitting data:", error); // Debugging log
-                        setErrorToastVisible(true); // Show error toast
-                        setTimeout(() => setErrorToastVisible(false), 3000); // Hide error toast after 3 seconds
+                    if (response.success) {
+                        showToast("success", "Advance Payment Bond submitted successfully!");
+                    } else {
+                        showToast("error", `Failed: ${response.message}`);
                     }
                 } else {
                     console.error(`Item with APBLaNo "${APBLaNo}" not found.`);
-                    setErrorToastVisible(true);
-                    setTimeout(() => setErrorToastVisible(false), 3000); // Show error toast
+                    showToast("error", "Something went wrong. Please try again.");
                 }
+
+                //if (targetItemIndex !== -1) {
+                //    const updatedItem = {
+                //        ...formData[targetItemIndex],
+                //        APBQSAppUserId: userId,
+                //        APBQSAppUserIPAddr: ipAddress,
+                //        APBQSAppDate: currentDate,
+                //    };
+
+                //    try {
+
+                //        if (companyName) {
+                //            await API.SubmitAPB([updatedItem], companyName);
+                //        }
+                         
+                //        setFormData((prevFormData) => {
+                //            const newFormData = [...prevFormData];
+                //            newFormData[targetItemIndex] = updatedItem;
+                //            return newFormData;
+                //        });
+                //        showToast("success", "Successfully update form !");
+                //    } catch (error) {
+                //        console.error("Error submitting data:", error);
+                //        showToast("error", "Something went wrong. Please try again.");
+                //    }
+                //} else {
+                //    console.error(`Item with APBLaNo "${APBLaNo}" not found.`);
+                //    showToast("error", "Something went wrong. Please try again.");
+                //}
             }
         } else {
-            setErrorToastVisible(true); // Show validation error toast
-            setTimeout(() => setErrorToastVisible(false), 3000);
+            showToast("error", "Form is not complete. Please try again.");
         }
-
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            showToast("error", "Something went wrong. Please try again.");
+        }
         setLoading(false); // Hide loading indicator
     };
 
     const validateForm = () => {
-        const errors: any = {}; // Object to hold error messages
+        const errors: FormErrors = {}; 
         let isValid = true;
 
-        // Iterate through each item in the formData (array)
         formData.forEach((item, index) => {
             // Check if APBAmount is filled and is a valid number
             if (!item.APBAmount) {
@@ -166,8 +203,7 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
             </CardTitle>
             <CardBody>
                 {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>Error: {error}</p>}
-                {!loading && !error && (
+                {!loading  && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                         {apb.map((item, index) => (
 
@@ -238,7 +274,7 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
                                         <Input
                                             type="date"
                                             name="dateexp"
-                                            id={`APBExtDate-${index}`} APBExtDate
+                                            id={`APBExtDate-${index}`}
                                             value={globalVariable.SafeRenderDate(item.APBExtDate)}
                                             onChange={(e) => handleInputChange(index, "APBExtDate", e.target.value)}
                                         />
@@ -285,20 +321,13 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
                         {/* Loading Modal */}
                         <LoadingModal isOpen={loading} />
 
-                        {/* Success Toast */}
-                        <ToastNotification
-                            isOpen={toastVisible}
-                            type="success"
-                            message="Form submitted successfully!"
-                            toggle={() => setToastVisible(false)}
-                        />
-
-                        {/* Error Toast */}
-                        <ToastNotification
-                            isOpen={errorToastVisible}
-                            type="error"
-                            message="Something went wrong. Please try again."
-                            toggle={() => setErrorToastVisible(false)}
+                        {/* Toast Notification */}
+                        <ToastMsg
+                            isOpen={toast.visible}
+                            type={toast.type}
+                            message={toast.message}
+                            toggle={() => setToast({ visible: false, type: "error", message: "" })}
+                            timeout={3000}
                         />
                     </div>
                 )}

@@ -87,10 +87,10 @@ export async function GetUserIPAddress(): Promise<string> {
 }
 
 export function ValidateAndFormatDate(date: any): string {
-    if (!date) return "N/A";
+    if (!date) return "";
 
     const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) return "N/A";
+    if (isNaN(parsedDate.getTime())) return "";
 
     const year = parsedDate.getFullYear();
     const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
@@ -103,11 +103,34 @@ export function ValidateAndFormatDate(date: any): string {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
-export function ValidateAndFormatDateAndTime(date: any): string {
-    if (!date) return "N/A";
+export function ValidateAndFormatDateOnly(date: any): string {
+    if (!date) return "";
 
     const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) return "N/A";
+    if (isNaN(parsedDate.getTime())) return "";
+
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(parsedDate.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+export function validateAndISOFormatDate(date: any): string | null {
+    if (!date) return null; // Instead of ""
+
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) return null; // Return null for invalid dates
+
+    return parsedDate.toISOString();
+}
+
+
+export function ValidateAndFormatDateAndTime(date: any): string {
+    if (!date) return "";
+
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) return "";
 
     const day = String(parsedDate.getDate()).padStart(2, "0");
     const month = String(parsedDate.getMonth() + 1).padStart(2, "0");

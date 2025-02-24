@@ -17,5 +17,25 @@
             // If validation passes
             return true;
         }
+
+        internal static bool IsValidBGDateRange(DateTime? bGDate, DateTime? bGExpiryDate, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (!bGDate.HasValue || !bGExpiryDate.HasValue)
+            {
+                errorMessage = "Dates cannot be null.";
+                return false;
+            }
+
+            if (bGDate >= bGExpiryDate)
+            {
+                errorMessage = "Backdated is not allowed.";
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

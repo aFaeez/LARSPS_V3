@@ -18,47 +18,6 @@ public static class ProjectStoredProcedureModule
     public static void GetSP(this IEndpointRouteBuilder app)
     {
         #region Main Page Project
-        //app.MapPost("/GetProject", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        //{
-        //    try
-        //    {
-        //        // Default userId
-        //        var userIdString = "KHTAN";
-
-        //        // Get the intPrjStatus from request body or default to 1
-        //        var statusIdInt = body.TryGetPropertyValue("intPrjStatus", out var statusIdNode)
-        //            ? statusIdNode?.GetValue<int>() ?? 1
-        //            : 1;
-
-        //        // Check if either value is invalid (e.g., null or empty)
-        //        if (string.IsNullOrEmpty(userIdString) || statusIdInt == null)
-        //        {
-        //            return Results.BadRequest("Invalid UserID or intPrjStatus.");
-        //        }
-
-        //        // SQL query to retrieve project data
-        //        var sql = @"
-        //        EXEC [dbo].[spLS_GetProject]
-        //        @UserID = @UserID,
-        //        @intPrjStatus = @intPrjStatus";
-
-        //        var parameters = new[] {
-        //            new Microsoft.Data.SqlClient.SqlParameter("@UserID", userIdString),
-        //            new Microsoft.Data.SqlClient.SqlParameter("@intPrjStatus", statusIdInt)
-        //        };
-
-        //        // Retrieve the result list by executing the stored procedure
-        //        var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-
-        //        // Return the project data as a response
-        //        return Results.Ok(resultList);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500); // Return detailed error message
-        //    }
-        //});
-
         app.MapPost("/GetProject", async ([FromServices] DataBaseContext dbContext, [FromBody] GetProjectRequest request) =>
         {
             try
@@ -112,44 +71,6 @@ public static class ProjectStoredProcedureModule
 
             var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
             return Results.Ok(resultList);
-        });
-        #endregion
-
-        #region LOGIN
-        app.MapPost("/LoginLAR", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        {
-            try
-            {
-                if (body.TryGetPropertyValue("loginID", out var loginIDNode) && loginIDNode != null &&
-                    body.TryGetPropertyValue("password", out var passwordNode) && passwordNode != null)
-                {
-                    string loginID = loginIDNode.ToString();
-                    string password = passwordNode.ToString();
-
-                    var sql = @"
-                    EXEC [dbo].[uspUser]
-                    @QueryType = @QueryType,
-                    @UserId = @UserId,
-                    @MenuSystemName = @MenuSystemName";
-
-                    var parameters = new[] {
-                        new Microsoft.Data.SqlClient.SqlParameter("@QueryType", "USER_LARSPSv2"),
-                        new Microsoft.Data.SqlClient.SqlParameter("@UserId", loginID),
-                        new Microsoft.Data.SqlClient.SqlParameter("@MenuSystemName", DBNull.Value)
-                    };
-
-                    var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-                    return Results.Ok(resultList);
-                }
-                else
-                {
-                    return Results.BadRequest("Missing or invalid parameter in the request body.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(detail: ex.Message, statusCode: 500);
-            }
         });
         #endregion
 
@@ -266,268 +187,7 @@ public static class ProjectStoredProcedureModule
         });
         #endregion
 
-        #region BankGuarantee
-        //app.MapPost("/GetBG", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        //{
-        //    try
-        //    {
-        //        // Validate and retrieve parameters from the request body
-        //        if (body.TryGetPropertyValue("compIdStr", out var compIdNode) &&
-        //            body.TryGetPropertyValue("projectStr", out var projectNode) &&
-        //            compIdNode != null && projectNode != null)
-        //        {
-        //            var compIdStr = compIdNode.ToString();
-        //            var projectStr = projectNode.ToString();
-
-        //            // Define the SQL stored procedure and parameters
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_GetBG]
-        //            @CompId = @CompId,
-        //            @Project = @Project";
-
-        //            var parameters = new[]
-        //            {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@CompId", compIdStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@Project", projectStr)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Invalid request body. Please provide 'compIdStr' and 'projectStr'.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-
-        //app.MapPost("/GetBGSub", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        //{
-        //    try
-        //    {
-        //        if (body.TryGetPropertyValue("strLaNo", out var LaNoNode) && LaNoNode != null)
-        //        {
-        //            var LaNo = LaNoNode.ToString();
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_GetBGSub]
-        //            @LaNo = @LaNo";
-
-        //            var parameters = new[] {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@LaNo", LaNo)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Missing or invalid 'strLaNo' in the request body.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-
-        //app.MapPost("/GetAPB", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        //{
-        //    try
-        //    {
-        //        if (body.TryGetPropertyValue("compIdStr", out var compIdNode) &&
-        //            body.TryGetPropertyValue("projectStr", out var projectNode) &&
-        //            body.TryGetPropertyValue("strLaNo", out var LaNoNode) &&
-        //            compIdNode != null && projectNode != null && LaNoNode != null)
-        //        {
-        //            var compIdStr = compIdNode.ToString();
-        //            var projectStr = projectNode.ToString();
-        //            var LaNo = LaNoNode.ToString();
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_GetAdvPaymBondDetails]
-        //            @CompId = @CompId,
-        //            @Project = @Project,
-        //            @HawLaNo = @HawLaNo";
-
-        //            var parameters = new[] {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@CompId", compIdStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@Project", projectStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@HawLaNo", LaNo)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Missing or invalid parameter in the request body.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-
-        //app.MapPost("/SubmitBG", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonElement body) =>
-        //{
-        //    try
-        //    {
-        //        if (body.TryGetProperty("strSQL", out var strNode) && strNode.ValueKind == JsonValueKind.String)
-        //        {
-        //            var strSQL = strNode.GetString();
-
-        //            // Validate the SQL string (Optional but recommended for security)
-        //            if (string.IsNullOrWhiteSpace(strSQL))
-        //            {
-        //                return Results.BadRequest("SQL string is empty or invalid.");
-        //            }
-
-        //            // Parse BGDate and BGExpiryDate from the body (assuming the data is part of the request)
-        //            if (body.TryGetProperty("BGDate", out var bgDateNode) && body.TryGetProperty("BGExpiryDate", out var bgExpiryDateNode))
-        //            {
-        //                DateTime BGDate = DateTime.Parse(bgDateNode.GetString());
-        //                DateTime BGExpiryDate = DateTime.Parse(bgExpiryDateNode.GetString());
-
-        //                // Call the validation function
-        //                if (!BGValidator.IsValidBGDateRange(BGDate, BGExpiryDate, out var errorMessage))
-        //                {
-        //                    return Results.BadRequest(errorMessage); // Return error message if validation fails
-        //                }
-        //            }
-
-        //            // Proceed with other validations and SQL execution
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_InsertBG]
-        //            @StrSQL";
-
-        //            var parameters = new[]
-        //            {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", strSQL)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Missing or invalid parameter in the request body.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-
-        //app.MapPost("/Activator", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonObject body) =>
-        //{
-        //    try
-        //    {
-        //        if (body.TryGetPropertyValue("AppStatStr", out var appStatNode) &&
-        //            body.TryGetPropertyValue("UserIdStr", out var userIpNode) &&
-        //            body.TryGetPropertyValue("IPAddrStr", out var ipAddrNode) &&
-        //            body.TryGetPropertyValue("DateCurrStr", out var dateCurrNode) &&
-        //            body.TryGetPropertyValue("typeStr", out var typeNode) &&
-        //            body.TryGetPropertyValue("compIDStr", out var compIdNode) &&
-        //            body.TryGetPropertyValue("laNoStr", out var laNoNode) &&
-        //            appStatNode != null && userIpNode != null && ipAddrNode != null && dateCurrNode != null && typeNode != null && compIdNode != null && laNoNode != null)
-        //        {
-        //            var AppStatStr = appStatNode.ToString();
-        //            var UserIdStr = userIpNode.ToString();
-        //            var IPAddrStr = ipAddrNode.ToString();
-        //            var DateCurrStr = dateCurrNode.ToString();
-        //            var typeStr = typeNode.ToString();
-        //            var compIDStr = compIdNode.ToString();
-        //            var laNoStr = laNoNode.ToString();
-
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_Activator]
-        //            @QueryType = @QueryType,
-        //            @AppStat = @AppStat,
-        //            @UserId = @UserId,
-        //            @IPAddr = @IPAddr,
-        //            @DateCurr = @DateCurr,
-        //            @CompId = @CompId,
-        //            @LaNo = @LaNo";
-
-        //            var parameters = new[]
-        //            {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@QueryType", typeStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@AppStat", AppStatStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@UserId", UserIdStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@IPAddr", IPAddrStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@DateCurr", DateCurrStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@CompId", compIDStr),
-        //                new Microsoft.Data.SqlClient.SqlParameter("@LaNo", laNoStr)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Invalid request body. Please provide correct string.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-
-        //app.MapPost("/SubmitAPB", async ([FromServices] DataBaseContext dbContext, [FromBody] JsonElement body) =>
-        //{
-        //    try
-        //    {
-        //        if (body.TryGetProperty("strSQL", out var strNode) && strNode.ValueKind == JsonValueKind.String)
-        //        {
-        //            var strSQL = strNode.GetString();
-
-        //            if (string.IsNullOrWhiteSpace(strSQL))
-        //            {
-        //                return Results.BadRequest("SQL string is empty or invalid.");
-        //            }
-
-        //            if (body.TryGetProperty("APBDate", out var apbDateNode) && body.TryGetProperty("APBExpiryDate", out var apbExpiryDateNode))
-        //            {
-        //                DateTime APBDate = DateTime.Parse(apbDateNode.GetString());
-        //                DateTime APBExpiryDate = DateTime.Parse(apbExpiryDateNode.GetString());
-
-        //                if (!BGValidator.IsValidBGDateRange(APBDate, APBExpiryDate, out var errorMessage))
-        //                {
-        //                    return Results.BadRequest(errorMessage); 
-        //                }
-        //            }
-
-        //            var sql = @"
-        //            EXEC [dbo].[spLS_InsertAPB]
-        //            @StrSQL";
-
-        //            var parameters = new[]
-        //            {
-        //                new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", strSQL)
-        //            };
-
-        //            var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-        //            return Results.Ok(resultList);
-        //        }
-        //        else
-        //        {
-        //            return Results.BadRequest("Missing or invalid parameter in the request body.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Results.Problem(detail: ex.Message, statusCode: 500);
-        //    }
-        //});
-        #endregion
-
-        #region Bank Guarantee DTO
+        #region Bank Guarantee
         app.MapPost("/GetBG", async ([FromServices] DataBaseContext dbContext, [FromBody] GetBGRequest request) =>
         {
             try
@@ -569,31 +229,67 @@ public static class ProjectStoredProcedureModule
             }
         });
 
+        //app.MapPost("/SubmitBG", async ([FromServices] DataBaseContext dbContext, [FromBody] SubmitBGRequest request) =>
+        //{
+        //    try
+        //    {
+        //        if (!BGValidator.IsValidBGDateRange(request.BGDate, request.BGExpiryDate, out var errorMessage))
+        //        {
+        //            return Results.BadRequest(errorMessage);
+        //        }
+
+        //        var sql = "EXEC [dbo].[spLS_InsertBG] @StrSQL";
+
+        //        var parameters = new[]
+        //        {
+        //            new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", request.StrSQL)
+        //        };
+
+        //        var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
+        //        return Results.Ok(resultList);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Results.Problem(detail: ex.Message, statusCode: 500);
+        //    }
+        //});
+
         app.MapPost("/SubmitBG", async ([FromServices] DataBaseContext dbContext, [FromBody] SubmitBGRequest request) =>
         {
             try
             {
                 if (!BGValidator.IsValidBGDateRange(request.BGDate, request.BGExpiryDate, out var errorMessage))
                 {
-                    return Results.BadRequest(errorMessage);
+                    return Results.BadRequest(new GeneralResponse { Success = false, Message = errorMessage });
                 }
 
-                var sql = "EXEC [dbo].[spLS_InsertBG] @StrSQL";
+                var sql = "EXEC [dbo].[spLS_UpdateBG] @BGDate, @BGExpiryDate, @BGToExtend, @BGExtDate, @BGRefNo, @BGBank, @BGUserId, @BGUserIPAddr, @BGRecDate, @BGCompId, @BGLaNo";
 
-                var parameters = new[]
-                {
-                    new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", request.StrSQL)
+                var parameters = new[] {
+                    new SqlParameter("@BGDate", request.BGDate),
+                    new SqlParameter("@BGExpiryDate", request.BGExpiryDate),
+                    new SqlParameter("@BGToExtend", string.IsNullOrEmpty(request.BGToExtend) ? DBNull.Value : request.BGToExtend),
+                    new SqlParameter("@BGExtDate", request.BGExtDate),
+                    new SqlParameter("@BGRefNo", string.IsNullOrEmpty(request.BGRefNo) ? DBNull.Value : request.BGRefNo),
+                    new SqlParameter("@BGBank", string.IsNullOrEmpty(request.BGBank) ? DBNull.Value : request.BGBank),
+                    new SqlParameter("@BGUserId", string.IsNullOrEmpty(request.BGUserId) ? DBNull.Value : request.BGUserId),
+                    new SqlParameter("@BGUserIPAddr", string.IsNullOrEmpty(request.BGUserIPAddr) ? DBNull.Value : request.BGUserIPAddr),
+                    new SqlParameter("@BGRecDate", request.BGRecDate),
+                    new SqlParameter("@BGCompId", string.IsNullOrEmpty(request.BGCompId) ? DBNull.Value : request.BGCompId),
+                    new SqlParameter("@BGLaNo", string.IsNullOrEmpty(request.BGLaNo) ? DBNull.Value : request.BGLaNo)
                 };
 
                 var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-                return Results.Ok(resultList);
+                return Results.Ok(new GeneralResponse { Success = true, Message = "Bank Guarantee submitted successfully!"});
             }
             catch (Exception ex)
             {
                 return Results.Problem(detail: ex.Message, statusCode: 500);
             }
-        });
-
+        }).WithName("SubmitBG")
+        .Produces<List<GeneralResponse>>(200)
+        .Produces(400)
+        .Produces(500); ;
 
         app.MapPost("/Activator", async ([FromServices] DataBaseContext dbContext, [FromBody] ActivatorRequest request) =>
         {
@@ -622,11 +318,9 @@ public static class ProjectStoredProcedureModule
                 return Results.Problem(detail: ex.Message, statusCode: 500);
             }
         });
-
-
         #endregion
 
-        #region APB DTO
+        #region Advance Payment Bond
         app.MapPost("/GetAPB", async ([FromServices] DataBaseContext dbContext, [FromBody] GetAPBRequest request) =>
         {
             try
@@ -649,30 +343,68 @@ public static class ProjectStoredProcedureModule
             }
         });
 
+        //app.MapPost("/SubmitAPB", async ([FromServices] DataBaseContext dbContext, [FromBody] SubmitAPBRequest request) =>
+        //{
+        //    try
+        //    {
+        //        if (!BGValidator.IsValidBGDateRange(request.APBDate, request.APBExpiryDate, out var errorMessage))
+        //        {
+        //            return Results.BadRequest(errorMessage);
+        //        }
+
+        //        var sql = "EXEC [dbo].[spLS_UpdateAPB] @StrSQL";
+
+        //        var parameters = new[]
+        //        {
+        //            new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", request.StrSQL)
+        //        };
+
+        //        var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
+        //        return Results.Ok(resultList);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Results.Problem(detail: ex.Message, statusCode: 500);
+        //    }
+        //});
+
         app.MapPost("/SubmitAPB", async ([FromServices] DataBaseContext dbContext, [FromBody] SubmitAPBRequest request) =>
         {
             try
             {
                 if (!BGValidator.IsValidBGDateRange(request.APBDate, request.APBExpiryDate, out var errorMessage))
                 {
-                    return Results.BadRequest(errorMessage);
+                    return Results.BadRequest(new GeneralResponse { Success = false, Message = errorMessage });
                 }
 
-                var sql = "EXEC [dbo].[spLS_InsertAPB] @StrSQL";
+                var sql = "EXEC [dbo].[spLS_UpdateAPB] @APBAmount, @APBDate, @APBExpiryDate, @APBExtDate,@APBProvidedDate, @APBRefNo, @APBBank, @APBUserId, @APBUserIPAddr, @APBRecDate, @APBCompId, @APBLaNo";
 
-                var parameters = new[]
-                {
-                    new Microsoft.Data.SqlClient.SqlParameter("@StrSQL", request.StrSQL)
+                var parameters = new[] {
+                    new SqlParameter("@APBAmount", request.APBAmount),
+                    new SqlParameter("@APBDate", request.APBDate),
+                    new SqlParameter("@APBExpiryDate", request.APBExpiryDate),
+                    new SqlParameter("@APBExtDate", request.APBExtDate),
+                    new SqlParameter("@APBProvidedDate", request.APBProvidedDate),
+                    new SqlParameter("@APBRefNo", string.IsNullOrEmpty(request.APBRefNo) ? DBNull.Value : request.APBRefNo),
+                    new SqlParameter("@APBBank", string.IsNullOrEmpty(request.APBBank) ? DBNull.Value : request.APBBank),
+                    new SqlParameter("@APBUserId", string.IsNullOrEmpty(request.APBUserId) ? DBNull.Value : request.APBUserId),
+                    new SqlParameter("@APBUserIPAddr", string.IsNullOrEmpty(request.APBUserIPAddr) ? DBNull.Value : request.APBUserIPAddr),
+                    new SqlParameter("@APBRecDate", request.APBRecDate),
+                    new SqlParameter("@APBCompId", string.IsNullOrEmpty(request.APBCompId) ? DBNull.Value : request.APBCompId),
+                    new SqlParameter("@APBLaNo", string.IsNullOrEmpty(request.APBLaNo) ? DBNull.Value : request.APBLaNo)
                 };
 
                 var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
-                return Results.Ok(resultList);
+                return Results.Ok(new GeneralResponse { Success = true, Message = "Advance Payment Bank submitted successfully!" });
             }
             catch (Exception ex)
             {
                 return Results.Problem(detail: ex.Message, statusCode: 500);
             }
-        });
+        }).WithName("SubmitAPB")
+        .Produces<List<GeneralResponse>>(200)
+        .Produces(400)
+        .Produces(500);
         #endregion
 
         #region Upload File
@@ -704,6 +436,52 @@ public static class ProjectStoredProcedureModule
                 return Results.Problem(detail: ex.Message, statusCode: 500);
             }
         });
+
+        app.MapPost("/UpsertBGApUpload", async ([FromServices] DataBaseContext dbContext, [FromBody] UploadRequest request) =>
+        {
+            try
+            {
+                var sql = @" EXEC [dbo].[spLS_UpsertBGApUpload] spUpsertBGApUpload @BGAPRecId, @BGAPProjId, @BGAPLaNo, @BGAPHawRecId, @BGAPType, @BGPBRLPercent, " +
+                          "@BGAPNo, @BGAPUserId, @BGAPFile, @BGAPIP, @BGAPDate, @BGAPDeleted, @BGRLDeletedBy, @BGRLDeletedDT, " +
+                          "@BGRLDeletedIP, @BGRLApprovedStat, @BGRLApprovedBy, @BGRLApprovedDT, @BGRLApprovedIP, @BGRLRejectReason";
+
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@BGAPRecId", request.BGAPRecId ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPProjId", request.BGAPProjId ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPLaNo", request.BGAPLaNo ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPHawRecId", request.BGAPHawRecId ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPType", request.BGAPType ?? (object)DBNull.Value),
+                    new SqlParameter("@BGPBRLPercent", request.BGPBRLPercent ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPNo", request.BGAPNo ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPUserId", request.BGAPUserId ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPFile", request.BGAPFile ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPIP", request.BGAPIP ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPDate", request.BGAPDate ?? (object)DBNull.Value),
+                    new SqlParameter("@BGAPDeleted", request.BGAPDeleted ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLDeletedBy", request.BGRLDeletedBy ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLDeletedDT", request.BGRLDeletedDT ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLDeletedIP", request.BGRLDeletedIP ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLApprovedStat", request.BGRLApprovedStat ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLApprovedBy", request.BGRLApprovedBy ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLApprovedDT", request.BGRLApprovedDT ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLApprovedIP", request.BGRLApprovedIP ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLRejectReason", request.BGRLRejectReason ?? (object)DBNull.Value),
+                };
+
+                var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
+                return Results.Ok(new GeneralResponse { Success = true, Message = "Document successfully uploaded!" });
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        }).WithName("UpsertBGApUpload")
+        .Produces<List<GeneralResponse>>(200)
+        .Produces(400)
+        .Produces(500); ;
+
+
         #endregion
 
         #region ACM Connection

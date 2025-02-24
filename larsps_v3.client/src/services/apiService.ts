@@ -1,7 +1,7 @@
 ﻿import axiosInstance from "./axiosInstance";
 import * as globalVariable from "./globalVariable";
 import * as apiClient from "./apiClient";
-import { StatusOptionDTO, BGDTO, BGSub, BGDashboard, UserQSME, APB, AttachmentTable } from "../dto/dtos";
+import { StatusOptionDTO, BGDTO, BGSub, BGDashboard,  APB, AttachmentTable } from "../dto/dtos";
 
 const apiService = {
     // Fetch user projects from the stored procedure
@@ -26,6 +26,9 @@ export interface Settings {
     connDb: string;
     systemName: string;
     companyName: string;
+    uploadPath: string;
+    userName: string;
+    userPwd: string;
 }
 
 export const WebConfig = async (): Promise<Settings> => {
@@ -203,80 +206,109 @@ export const GetPending = async (UPProjectId: string, companyName: string): Prom
     }
 };
 
+//const allowedColumns: (keyof BGSub)[] = [
+//    "BGDate",
+//    "BGExpiryDate",
+//    "BGToExtend",
+//    "BGExtDate",
+//    "BGRefNo",
+//    "BGBank",
+//    "BGUserId",
+//    "BGUserIPAddr",
+//    "BGRecDate"
+//];
 
-const allowedColumns: (keyof BGSub)[] = [
-    "BGDate",
-    "BGExpiryDate",
-    "BGToExtend",
-    "BGExtDate",
-    "BGRefNo",
-    "BGBank",
-    "BGUserId",
-    "BGUserIPAddr",
-    "BGRecDate"
-];
+//export const SubmitBG = async (formData: BGSub[], companyName: string): Promise<BGSub[]> => {
+//    try {
+//        const sqlString = formData.map((item) => {
+//            const columnAssignments = allowedColumns
+//                .filter((key) => key in item)
+//                .map((key) => {
+//                    if (key === "BGToExtend") {
+//                        const transformedValue = item.BGToExtend === "Yes" ? 1 : item.BGToExtend === "No" ? 0 : item.BGToExtend;
+//                        return `${key}='${transformedValue}'`;
+//                    }
+//                    return `${key}='${item[key]}'`; 
+//                })
+//                .join(", ");
+
+//            return `${columnAssignments} WHERE BGCompId='${companyName}' AND BGLaNo='${item.BGLaNo}' AND BGActive='1'`;
+//        });
+
+//        console.log("Generated SQL String:", sqlString);
+//        const response = await axiosInstance.post("/SubmitBG", { strSQL: sqlString.join("; ") });
+//        console.log("API Response for Submit BG:", response.data);
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error Submit BG:", error);
+//        throw new Error("Failed to Submit BG. Please try again.");
+//    }
+//};
 
 // Submit BG
-export const SubmitBG = async (formData: BGSub[], companyName: string): Promise<BGSub[]> => {
+export const SubmitBG = async (formData: apiClient.SubmitBGRequest): Promise<apiClient.GeneralResponse> => {
     try {
-        const sqlString = formData.map((item) => {
-            const columnAssignments = allowedColumns
-                .filter((key) => key in item)
-                .map((key) => {
-                    if (key === "BGToExtend") {
-                        const transformedValue = item.BGToExtend === "Yes" ? 1 : item.BGToExtend === "No" ? 0 : item.BGToExtend;
-                        return `${key}='${transformedValue}'`;
-                    }
-                    return `${key}='${item[key]}'`; 
-                })
-                .join(", ");
-
-            return `${columnAssignments} WHERE BGCompId='${companyName}' AND BGLaNo='${item.BGLaNo}' AND BGActive='1'`;
+        console.log("Form Data:", formData);
+        const response = await axiosInstance.post<apiClient.GeneralResponse>("/SubmitBG", formData, {
+            headers: { "Content-Type": "application/json" }
         });
-
-        //console.log("Generated SQL String:", sqlString);
-        const response = await axiosInstance.post("/SubmitBG", { strSQL: sqlString.join("; ") });
-        //console.log("API Response for Submit BG:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.error("Error Submit BG:", error);
-        throw new Error("Failed to Submit BG. Please try again.");
+        console.error("Failed to update BG:", error);
+        throw new Error("Failed to update Bank Guarantee");
+    }
+};
+
+export const SubmitAPB = async (formData: apiClient.SubmitAPBRequest): Promise<apiClient.GeneralResponse> => {
+    try {
+        console.log("Form Data:", formData);
+        const response = await axiosInstance.post<apiClient.GeneralResponse>("/SubmitAPB", formData, {
+            headers: { "Content-Type": "application/json" }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Failed to update APB:", error);
+        throw new Error("Failed to update APB");
     }
 };
 
 
-const allowedColumnsAPB: (keyof APB)[] = [
-    "APBAmount",
-    "APBDate",
-    "APBExpiryDate",
-    "APBExtDate",
-    "APBProvidedDate",
-    "APBRefNo",
-    "APBBank"
-];
+//const allowedColumnsAPB: (keyof APB)[] = [
+//    "APBAmount",
+//    "APBDate",
+//    "APBExpiryDate",
+//    "APBExtDate",
+//    "APBProvidedDate",
+//    "APBRefNo",
+//    "APBBank"
+//];
+
+
 
 // Submit APB
-export const SubmitAPB = async (formData: APB[],companyName: string): Promise<APB[]> => {
-    try {
-        const sqlString = formData.map((item) => {
-            const columnAssignments = allowedColumnsAPB
-                .filter((key) => key in item)
-                .map((key) => {
-                    return `${key}='${item[key]}'`;
-                })
-                .join(", ");
+//export const SubmitAPB = async (formData: APB[],companyName: string): Promise<APB[]> => {
+//    try {
+//        const sqlString = formData.map((item) => {
+//            const columnAssignments = allowedColumnsAPB
+//                .filter((key) => key in item)
+//                .map((key) => {
+//                    return `${key}='${item[key]}'`;
+//                })
+//                .join(", ");
 
-            return `${columnAssignments} WHERE APBCompId='${companyName}' AND APBLaNo='${item.APBLaNo}' AND APBActive='1'`;
-        });
-        //console.log("Generated SQL String:", sqlString);
-        const response = await axiosInstance.post("/SubmitAPB", { strSQL: sqlString.join("; ") });
-        //console.log("API Response for Submit APB:", response.data);
-        return response.data;
-    } catch (error) {
-        console.error("Error Submit APB:", error);
-        throw new Error("Failed to Submit APB. Please try again.");
-    }
-};
+//            return `${columnAssignments} WHERE APBCompId='${companyName}' AND APBLaNo='${item.APBLaNo}' AND APBActive='1'`;
+//        });
+//        //console.log("Generated SQL String:", sqlString);
+//        const response = await axiosInstance.post("/SubmitAPB", { strSQL: sqlString.join("; ") });
+//        //console.log("API Response for Submit APB:", response.data);
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error Submit APB:", error);
+//        throw new Error("Failed to Submit APB. Please try again.");
+//    }
+//};
 
 // Activator   #1 Activate BG   #2 Activate APB   #3 Activate Waived
 export const Activator = async (AppStat: string, UserId: string, IPAddr: string, DateCurr: string, type: string, LANo: string, companyName: string): Promise<any[]> => {
@@ -290,15 +322,15 @@ export const Activator = async (AppStat: string, UserId: string, IPAddr: string,
 };
 
 // Fetch GetUserQSME
-export const GetUserQSME = async (): Promise<UserQSME[]> => {
-    try {
-        const response = await axiosInstance.post("/GetUserQSME");
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching project status options:", error);
-        throw new Error("Failed to fetch project status options. Please try again.");
-    }
-};
+//export const GetUserQSME = async (): Promise<UserQSME[]> => {
+//    try {
+//        const response = await axiosInstance.post("/GetUserQSME");
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error fetching project status options:", error);
+//        throw new Error("Failed to fetch project status options. Please try again.");
+//    }
+//};
 
 
 
@@ -339,6 +371,23 @@ export const FetchGetFile = async (LaNo: string, project: string): Promise<Attac
     }
 };
 
+export const UploadFile = async (formData: apiClient.UploadRequest): Promise<apiClient.GeneralResponse> => {
+    try {
+        console.log("Form Data:", formData);
+        const response = await axiosInstance.post<apiClient.GeneralResponse>("/UpsertBGApUpload", formData, {
+            headers: { "Content-Type": "application/json" }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Failed to upload attachment:", error);
+        throw new Error("Failed to upload attachment");
+    }
+};
+
+
+
+
 export const LoginCred = async (requestData: apiClient.GetUserRequest): Promise<apiClient.GetUserResponse[]> => {
     try {
         const response = await axiosInstance.post<apiClient.GetUserResponse[]>("/GetUser", requestData, {
@@ -370,6 +419,7 @@ export const fetchParentMenus = async (requestData: apiClient.GetMenuParentReque
 //child
 export const fetchMenus = async (requestData: apiClient.GetMenuChildRequest): Promise<apiClient.GetMenuChildResponse[]> => {
     try {
+
         const response = await axiosInstance.post<apiClient.GetMenuChildResponse[]>("/GetMenuChild", requestData, {
             headers: { "Content-Type": "application/json" }
         });

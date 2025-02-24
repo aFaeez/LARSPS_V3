@@ -24,19 +24,58 @@ interface FileItem {
 }
 
 const columnsBG: MRT_ColumnDef<AttachmentTable>[] = [
-    { accessorKey: "BGAPFile", header: "File Name" },
+    {
+        accessorKey: "BGAPFile",
+        header: "File Name",
+        Cell: ({ row }) => {
+            const fileName = row.original.BGAPFile; // Display only file name
+            const fullFilePath = row.original.FullFilePath; // Use full path for link
+
+            return (
+                <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
+                    {fileName}
+                </a>
+            );
+        },
+    },
     { accessorKey: "BGAPUserId", header: "User ID", size: 200 },
     { accessorKey: "BGAPDate", header: "Uploaded Date" },
 ];
 
 const columnsAPB: MRT_ColumnDef<AttachmentTable>[] = [
-    { accessorKey: "APBFile", header: "File Name" },
+    {
+        accessorKey: "APBFile",
+        header: "File Name",
+        Cell: ({ row }) => {
+            const fileName = row.original.APBFile;
+            const fullFilePath = row.original.FullFilePath;
+
+            return (
+                <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
+                    {fileName}
+                </a>
+            );
+        },
+    },
     { accessorKey: "APBUserId", header: "User ID", size: 200 },
     { accessorKey: "APBDate", header: "Uploaded Date" },
 ];
 
 const columnsPBRL: MRT_ColumnDef<AttachmentTable>[] = [
-    { accessorKey: "BGAPFile", header: "File Name" },
+    {
+        accessorKey: "BGAPFile",
+        header: "File Name",
+        Cell: ({ row }) => {
+            const fileName = row.original.BGAPFile;
+            const fullFilePath = row.original.FullFilePath;
+
+            return (
+                <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
+                    {fileName}
+                </a>
+            );
+        },
+    },
     {
         accessorKey: "BGPBRLPercent",
         header: "PRBL Percent",
@@ -91,14 +130,21 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
 
     async fetchDataFile() {
         try {
-            const fetchedData = await API.FetchGetFile(this.props.laNo, this.props.projectId);
+            const config = await API.WebConfig();
+            if (config) {
 
-            const sanitizedData = fetchedData.map(item => ({
-                ...item,
-                BGPBRLPercent: typeof item.BGPBRLPercent === "object" ? "N/A" : item.BGPBRLPercent
-            }));
+                const fetchedData = await API.FetchGetFile(this.props.laNo, this.props.projectId);
 
-            this.setState({ data: sanitizedData });
+                const sanitizedData = fetchedData.map(item => ({
+                    ...item,
+                    FullFilePath: config.uploadPath + item.BGAPFile,
+                    BGPBRLPercent: typeof item.BGPBRLPercent === "object" ? "N/A" : item.BGPBRLPercent
+                }));
+
+                this.setState({ data: sanitizedData });
+            }
+
+            
         } catch (err) {
             console.error("Error fetching files:", err);
         }
@@ -109,6 +155,7 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
     }
 
     render() {
+
 
         const columns =
             this.props.type === "BG"

@@ -23,8 +23,13 @@
                 isDebug = _configuration["AppSettings:IsDebug"],
                 connDb = _configuration["AppSettings:ConnDbLARSPSv2"],
                 systemName = _configuration["AppSettings:SystemName"],
-                companyName = _configuration["AppSettings:CompanyName"]
-            };
+                companyName = _configuration["AppSettings:CompanyName"],
+
+                uploadPath = _configuration["AppSettings:LAN_UPLOAD_PATH"],
+                userDomain = _configuration["AppSettings:UploadUser_Domain"],
+                userName = _configuration["AppSettings:UploadUser_Name"],
+                userPwd = _configuration["AppSettings:UploadUser_Pwd"]
+        };
             return Ok(settings);
         }
 

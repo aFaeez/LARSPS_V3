@@ -124,6 +124,7 @@ export interface AttachmentTable {
     BGAPNo: number;
     BGAPUserId: string;
     BGAPFile: string;
+    APBFile: string;
     BGAPIP: string;
     BGAPDate: Date | string;
     BGAPDeleted: string;
@@ -136,4 +137,5 @@ export interface AttachmentTable {
     BGRLApprovedIP?: string;
     BGRLRejectReason?: string;
     AllowDelete?: string;
+    FullFilePath?: string;
 }

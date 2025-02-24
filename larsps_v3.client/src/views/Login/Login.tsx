@@ -1,7 +1,7 @@
 ﻿import { Col, Card, CardBody, Button, Row, Container, Form, FormGroup, Label, Input } from "reactstrap";
 import logo from "../../assets/images/logos/SPYTL.jpg";
-import ToastNotification from '../../layouts/ToastMsg';
-import { useState} from "react";
+import ToastMsg from '../../layouts/ToastMsg';  // Ensure correct import
+import { useState } from "react";
 import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
 import * as API from "../../services/apiService";
 import * as globalVariable from "../../services/globalVariable";
@@ -12,12 +12,18 @@ function Login() {
     const { goTo } = useDynamicNavigation();
     const { setUserId, setSystemName, setCompanyName, setIsITAdmin, setFullName } = useSession();
     const [loading, setLoading] = useState(false);
-    const [errorToastVisible, setErrorToastVisible] = useState(false);
-    const [formData, setFormData] = useState({ username: "", password: "" }); 
+    const [toast, setToast] = useState({ visible: false, type: "error" as "success" | "error", message: "" });
+    const [formData, setFormData] = useState({ username: "", password: "" });
 
     // Handle Input Change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Show Toast Function
+    const showToast = (type: "success" | "error", message: string) => {
+        setToast({ visible: true, type, message });
+        setTimeout(() => setToast({ visible: false, type, message: "" }), 3000);
     };
 
     // Handle Form Submit
@@ -27,8 +33,7 @@ function Login() {
 
         try {
             if (!formData.username || !formData.password) {
-                setErrorToastVisible(true);
-                setTimeout(() => setErrorToastVisible(false), 3000);
+                showToast("error", "Username and password are required.");
                 return;
             }
 
@@ -47,21 +52,21 @@ function Login() {
             const userCredential = await API.LoginCred(requestData as GetUserRequest) as GetUserResponse[];
 
             if (userCredential.length > 0) {
-                const user = userCredential[0]; 
+                const user = userCredential[0];
                 setUserId(user.userId ?? "");
                 setFullName(user.msName ?? "");
 
                 const itAdmin = globalVariable.ITAdminChecker(user.userId ?? "", config.itadmin);
                 setIsITAdmin(itAdmin);
 
-                goTo("master (v3)");
+                showToast("success", "Login successful! Redirecting...");
+                setTimeout(() => goTo("master (v3)"), 2000);
             } else {
-                console.error("Invalid login credentials");
-                setErrorToastVisible(true);
+                showToast("error", "Invalid username or password. Please try again.");
             }
         } catch (error) {
             console.error("Login failed:", error);
-            setErrorToastVisible(true);
+            showToast("error", "Login failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -83,7 +88,7 @@ function Login() {
                                             WELCOME TO LARSPSV3
                                         </h3>
                                     </div>
-                                    
+
                                     <div className='pt-4'>
                                         {/* Form */}
                                         <Form onSubmit={handleSubmit} className="w-100 p-4">
@@ -141,13 +146,13 @@ function Login() {
                                 </Col>
                             </Row>
 
-                            {/* Error Toast */}
-                            <ToastNotification
-                                isOpen={errorToastVisible}
-                                type="error"
-                                message="Invalid username or password. Please try again."
-                                toggle={() => setErrorToastVisible(false)}
-                                timeout={3000} 
+                            {/* Toast Notification */}
+                            <ToastMsg
+                                isOpen={toast.visible}
+                                type={toast.type}
+                                message={toast.message}
+                                toggle={() => setToast({ visible: false, type: "error", message: "" })}
+                                timeout={3000}
                             />
 
                         </CardBody>

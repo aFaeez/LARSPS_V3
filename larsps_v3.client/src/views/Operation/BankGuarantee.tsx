@@ -8,7 +8,7 @@ import { BGDTO } from "../../dto/dtos";
 import BGSubTemplate from "./BGSubTemplate";
 import APBTemplate from "./APBTemplate";
 import ListProjModal from "./ListProjModal";
-import ToastNotification from '../../layouts/ToastMsg';
+import ToastMsg from '../../layouts/ToastMsg';
 
 const BankGuarantee: React.FC = () => {
     const { companyName } = useSession();
@@ -29,13 +29,17 @@ const BankGuarantee: React.FC = () => {
     const [showAPBForm, setshowAPBForm] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
-    const [toastVisible, setToastVisible] = useState(false); // Success toast visibility state
-    const [errorToastVisible, setErrorToastVisible] = useState(false); // Error toast visibility state
-    const [toastMessage, setToastMessage] = useState("");
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
 
     const [selectedFilter, setSelectedFilter] = useState<string>("");
+    
+    // Show Toast Function
+    const showToast = (type: "success" | "error", message: string) => {
+        setToast({ visible: true, type, message });
+        setTimeout(() => setToast({ visible: false, type, message: "" }), 3000);
+    };
+    const [toast, setToast] = useState({ visible: false, type: "error" as "success" | "error", message: "" });
 
     // Fetch data from API
     const fetchData = async (UPProjectId: string) => {
@@ -130,7 +134,7 @@ const BankGuarantee: React.FC = () => {
 
                 return (
                     <Badge color={isApproved ? "success" : "danger"}>
-                        {isApproved ? "Approved" : "Pending"}
+                        {isApproved ? "Activated" : "Pending"}
                     </Badge>
                 );
             },
@@ -210,16 +214,12 @@ const BankGuarantee: React.FC = () => {
             if (companyName) {
                 await Activator(statusToNumber, userId, ipField, currentDate, type, LANo, companyName);
                 setFilteredData(updatedData);
-                setToastMessage(`Successfully ${action}d ${type}.`);
-                setToastVisible(true);
-                setTimeout(() => setToastVisible(false), 3000);
+                showToast("success", "Successfully update status !");
             }
             
         } catch (err) {
             console.error("Failed to update status:", err);
-            setToastMessage("Failed to update status, Please try again");
-            setErrorToastVisible(true);
-            setTimeout(() => setErrorToastVisible(false), 3000);
+            showToast("error", "Something went wrong. Please try again.");
         }
     };
 
@@ -376,11 +376,11 @@ const BankGuarantee: React.FC = () => {
                                                                 </Button>
                                                             ) : detailData.BGQSAppStat === "Yes" ? (
                                                                 <Button className="btn" color="success" size="sm" onClick={() => toggleStatus(row.index, "BG", detailData.HawLaNo)}>
-                                                                    Approved
+                                                                    Activated
                                                                 </Button>
                                                             ) : (
                                                                 <Button className="btn" color="danger" size="sm" onClick={() => toggleStatus(row.index, "BG", detailData.HawLaNo)}>
-                                                                    Approve
+                                                                    Activate
                                                                 </Button>
                                                             )}
                                                         </p>
@@ -389,17 +389,17 @@ const BankGuarantee: React.FC = () => {
                                                             <strong>Activate APB:</strong>{" "}
                                                             {detailData.APBQSAppStat === "Yes" ? (
                                                                 <Button className="btn" color="success" size="sm" onClick={() => toggleStatus(row.index, "APB", detailData.HawLaNo)}>
-                                                                    Approved
+                                                                    Activated
                                                                 </Button>
                                                             ) : (
                                                                 <Button className="btn" color="danger" size="sm" onClick={() => toggleStatus(row.index, "APB", detailData.HawLaNo)}>
-                                                                    Approve
+                                                                    Activate
                                                                 </Button>
                                                             )}
                                                         </p>
 
-                                                        <p><strong>Approved By:</strong> {SafeRender(detailData.BGQSAppUserId)}</p>
-                                                        <p><strong>Approval Date:</strong> {SafeRenderDatewithTime(detailData.BGQSAppDate)}</p>
+                                                        <p><strong>Activated By:</strong> {SafeRender(detailData.BGQSAppUserId)}</p>
+                                                        <p><strong>Activated Date:</strong> {SafeRenderDatewithTime(detailData.BGQSAppDate)}</p>
                                                     </div>
 
                                                     {/* Section 3 */}
@@ -453,20 +453,13 @@ const BankGuarantee: React.FC = () => {
                                 />
                             )}
 
-                            {/* Success Toast */}
-                            <ToastNotification
-                                isOpen={toastVisible}
-                                type="success"
-                                message={toastMessage}
-                                toggle={() => setToastVisible(false)}
-                            />
-
-                            {/* Error Toast */}
-                            <ToastNotification
-                                isOpen={errorToastVisible}
-                                type="error"
-                                message="Something went wrong. Please try again."
-                                toggle={() => setErrorToastVisible(false)}
+                            {/* Toast Notification */}
+                            <ToastMsg
+                                isOpen={toast.visible}
+                                type={toast.type}
+                                message={toast.message}
+                                toggle={() => setToast({ visible: false, type: "error", message: "" })}
+                                timeout={3000} 
                             />
 
                         </CardBody>

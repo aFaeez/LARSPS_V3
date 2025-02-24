@@ -110,43 +110,6 @@ export class Client {
     /**
      * @return OK
      */
-    loginLAR(body: { [key: string]: JsonNode; }): Promise<void> {
-        let url_ = this.baseUrl + "/LoginLAR";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLoginLAR(_response);
-        });
-    }
-
-    protected processLoginLAR(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @return OK
-     */
     getBG(body: GetBGRequest): Promise<void> {
         let url_ = this.baseUrl + "/GetBG";
         url_ = url_.replace(/[?&]$/, "");
@@ -221,7 +184,7 @@ export class Client {
     /**
      * @return OK
      */
-    submitBG(body: SubmitBGRequest): Promise<void> {
+    submitBG(body: SubmitBGRequest): Promise<GeneralResponse[]> {
         let url_ = this.baseUrl + "/SubmitBG";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -232,6 +195,7 @@ export class Client {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -240,19 +204,37 @@ export class Client {
         });
     }
 
-    protected processSubmitBG(response: Response): Promise<void> {
+    protected processSubmitBG(response: Response): Promise<GeneralResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GeneralResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            return throwException("Internal Server Error", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<GeneralResponse[]>(null as any);
     }
 
     /**
@@ -332,7 +314,7 @@ export class Client {
     /**
      * @return OK
      */
-    submitAPB(body: SubmitAPBRequest): Promise<void> {
+    submitAPB(body: SubmitAPBRequest): Promise<GeneralResponse[]> {
         let url_ = this.baseUrl + "/SubmitAPB";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -343,6 +325,7 @@ export class Client {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -351,19 +334,37 @@ export class Client {
         });
     }
 
-    protected processSubmitAPB(response: Response): Promise<void> {
+    protected processSubmitAPB(response: Response): Promise<GeneralResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GeneralResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            return throwException("Internal Server Error", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<GeneralResponse[]>(null as any);
     }
 
     /**
@@ -401,6 +402,62 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    upsertBGApUpload(body: UploadRequest): Promise<GeneralResponse[]> {
+        let url_ = this.baseUrl + "/UpsertBGApUpload";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpsertBGApUpload(_response);
+        });
+    }
+
+    protected processUpsertBGApUpload(response: Response): Promise<GeneralResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GeneralResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            return throwException("Internal Server Error", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GeneralResponse[]>(null as any);
     }
 
     /**
@@ -907,6 +964,46 @@ export interface IActivatorRequest {
     typeStr?: string | undefined;
     compIDStr?: string | undefined;
     laNoStr?: string | undefined;
+}
+
+export class GeneralResponse implements IGeneralResponse {
+    success?: boolean;
+    message?: string | undefined;
+
+    constructor(data?: IGeneralResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): GeneralResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new GeneralResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IGeneralResponse {
+    success?: boolean;
+    message?: string | undefined;
 }
 
 export class GetAPBRequest implements IGetAPBRequest {
@@ -1570,9 +1667,18 @@ export interface IJsonNodeOptions {
 }
 
 export class SubmitAPBRequest implements ISubmitAPBRequest {
-    strSQL?: string | undefined;
+    apbAmount?: number;
     apbDate?: Date;
     apbExpiryDate?: Date;
+    apbExtDate?: Date | undefined;
+    apbProvidedDate?: Date | undefined;
+    apbRefNo?: string | undefined;
+    apbBank?: string | undefined;
+    apbUserId?: string | undefined;
+    apbUserIPAddr?: string | undefined;
+    apbRecDate?: Date;
+    apbCompId?: string | undefined;
+    apbLaNo?: string | undefined;
 
     constructor(data?: ISubmitAPBRequest) {
         if (data) {
@@ -1585,9 +1691,18 @@ export class SubmitAPBRequest implements ISubmitAPBRequest {
 
     init(_data?: any) {
         if (_data) {
-            this.strSQL = _data["strSQL"];
+            this.apbAmount = _data["apbAmount"];
             this.apbDate = _data["apbDate"] ? new Date(_data["apbDate"].toString()) : <any>undefined;
             this.apbExpiryDate = _data["apbExpiryDate"] ? new Date(_data["apbExpiryDate"].toString()) : <any>undefined;
+            this.apbExtDate = _data["apbExtDate"] ? new Date(_data["apbExtDate"].toString()) : <any>undefined;
+            this.apbProvidedDate = _data["apbProvidedDate"] ? new Date(_data["apbProvidedDate"].toString()) : <any>undefined;
+            this.apbRefNo = _data["apbRefNo"];
+            this.apbBank = _data["apbBank"];
+            this.apbUserId = _data["apbUserId"];
+            this.apbUserIPAddr = _data["apbUserIPAddr"];
+            this.apbRecDate = _data["apbRecDate"] ? new Date(_data["apbRecDate"].toString()) : <any>undefined;
+            this.apbCompId = _data["apbCompId"];
+            this.apbLaNo = _data["apbLaNo"];
         }
     }
 
@@ -1600,23 +1715,49 @@ export class SubmitAPBRequest implements ISubmitAPBRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["strSQL"] = this.strSQL;
+        data["apbAmount"] = this.apbAmount;
         data["apbDate"] = this.apbDate ? this.apbDate.toISOString() : <any>undefined;
         data["apbExpiryDate"] = this.apbExpiryDate ? this.apbExpiryDate.toISOString() : <any>undefined;
+        data["apbExtDate"] = this.apbExtDate ? this.apbExtDate.toISOString() : <any>undefined;
+        data["apbProvidedDate"] = this.apbProvidedDate ? this.apbProvidedDate.toISOString() : <any>undefined;
+        data["apbRefNo"] = this.apbRefNo;
+        data["apbBank"] = this.apbBank;
+        data["apbUserId"] = this.apbUserId;
+        data["apbUserIPAddr"] = this.apbUserIPAddr;
+        data["apbRecDate"] = this.apbRecDate ? this.apbRecDate.toISOString() : <any>undefined;
+        data["apbCompId"] = this.apbCompId;
+        data["apbLaNo"] = this.apbLaNo;
         return data;
     }
 }
 
 export interface ISubmitAPBRequest {
-    strSQL?: string | undefined;
+    apbAmount?: number;
     apbDate?: Date;
     apbExpiryDate?: Date;
+    apbExtDate?: Date | undefined;
+    apbProvidedDate?: Date | undefined;
+    apbRefNo?: string | undefined;
+    apbBank?: string | undefined;
+    apbUserId?: string | undefined;
+    apbUserIPAddr?: string | undefined;
+    apbRecDate?: Date;
+    apbCompId?: string | undefined;
+    apbLaNo?: string | undefined;
 }
 
 export class SubmitBGRequest implements ISubmitBGRequest {
-    strSQL?: string | undefined;
-    bgDate?: Date;
-    bgExpiryDate?: Date;
+    bgDate?: Date | undefined;
+    bgExpiryDate?: Date | undefined;
+    bgToExtend?: string | undefined;
+    bgExtDate?: Date | undefined;
+    bgRefNo?: string | undefined;
+    bgBank?: string | undefined;
+    bgUserId?: string | undefined;
+    bgUserIPAddr?: string | undefined;
+    bgRecDate?: Date | undefined;
+    bgCompId?: string | undefined;
+    bgLaNo?: string | undefined;
 
     constructor(data?: ISubmitBGRequest) {
         if (data) {
@@ -1629,9 +1770,17 @@ export class SubmitBGRequest implements ISubmitBGRequest {
 
     init(_data?: any) {
         if (_data) {
-            this.strSQL = _data["strSQL"];
             this.bgDate = _data["bgDate"] ? new Date(_data["bgDate"].toString()) : <any>undefined;
             this.bgExpiryDate = _data["bgExpiryDate"] ? new Date(_data["bgExpiryDate"].toString()) : <any>undefined;
+            this.bgToExtend = _data["bgToExtend"];
+            this.bgExtDate = _data["bgExtDate"] ? new Date(_data["bgExtDate"].toString()) : <any>undefined;
+            this.bgRefNo = _data["bgRefNo"];
+            this.bgBank = _data["bgBank"];
+            this.bgUserId = _data["bgUserId"];
+            this.bgUserIPAddr = _data["bgUserIPAddr"];
+            this.bgRecDate = _data["bgRecDate"] ? new Date(_data["bgRecDate"].toString()) : <any>undefined;
+            this.bgCompId = _data["bgCompId"];
+            this.bgLaNo = _data["bgLaNo"];
         }
     }
 
@@ -1644,17 +1793,145 @@ export class SubmitBGRequest implements ISubmitBGRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["strSQL"] = this.strSQL;
         data["bgDate"] = this.bgDate ? this.bgDate.toISOString() : <any>undefined;
         data["bgExpiryDate"] = this.bgExpiryDate ? this.bgExpiryDate.toISOString() : <any>undefined;
+        data["bgToExtend"] = this.bgToExtend;
+        data["bgExtDate"] = this.bgExtDate ? this.bgExtDate.toISOString() : <any>undefined;
+        data["bgRefNo"] = this.bgRefNo;
+        data["bgBank"] = this.bgBank;
+        data["bgUserId"] = this.bgUserId;
+        data["bgUserIPAddr"] = this.bgUserIPAddr;
+        data["bgRecDate"] = this.bgRecDate ? this.bgRecDate.toISOString() : <any>undefined;
+        data["bgCompId"] = this.bgCompId;
+        data["bgLaNo"] = this.bgLaNo;
         return data;
     }
 }
 
 export interface ISubmitBGRequest {
-    strSQL?: string | undefined;
-    bgDate?: Date;
-    bgExpiryDate?: Date;
+    bgDate?: Date | undefined;
+    bgExpiryDate?: Date | undefined;
+    bgToExtend?: string | undefined;
+    bgExtDate?: Date | undefined;
+    bgRefNo?: string | undefined;
+    bgBank?: string | undefined;
+    bgUserId?: string | undefined;
+    bgUserIPAddr?: string | undefined;
+    bgRecDate?: Date | undefined;
+    bgCompId?: string | undefined;
+    bgLaNo?: string | undefined;
+}
+
+export class UploadRequest implements IUploadRequest {
+    bgapRecId?: number | undefined;
+    bgapProjId?: string | undefined;
+    bgapLaNo?: string | undefined;
+    bgapHawRecId?: number | undefined;
+    bgapType?: string | undefined;
+    bgpbrlPercent?: number | undefined;
+    bgapNo?: number | undefined;
+    bgapUserId?: string | undefined;
+    bgapFile?: string | undefined;
+    bgapip?: string | undefined;
+    bgapDate?: Date | undefined;
+    bgapDeleted?: string | undefined;
+    bgrlDeletedBy?: string | undefined;
+    bgrlDeletedDT?: Date | undefined;
+    bgrlDeletedIP?: string | undefined;
+    bgrlApprovedStat?: number | undefined;
+    bgrlApprovedBy?: string | undefined;
+    bgrlApprovedDT?: Date | undefined;
+    bgrlApprovedIP?: string | undefined;
+    bgrlRejectReason?: string | undefined;
+
+    constructor(data?: IUploadRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.bgapRecId = _data["bgapRecId"];
+            this.bgapProjId = _data["bgapProjId"];
+            this.bgapLaNo = _data["bgapLaNo"];
+            this.bgapHawRecId = _data["bgapHawRecId"];
+            this.bgapType = _data["bgapType"];
+            this.bgpbrlPercent = _data["bgpbrlPercent"];
+            this.bgapNo = _data["bgapNo"];
+            this.bgapUserId = _data["bgapUserId"];
+            this.bgapFile = _data["bgapFile"];
+            this.bgapip = _data["bgapip"];
+            this.bgapDate = _data["bgapDate"] ? new Date(_data["bgapDate"].toString()) : <any>undefined;
+            this.bgapDeleted = _data["bgapDeleted"];
+            this.bgrlDeletedBy = _data["bgrlDeletedBy"];
+            this.bgrlDeletedDT = _data["bgrlDeletedDT"] ? new Date(_data["bgrlDeletedDT"].toString()) : <any>undefined;
+            this.bgrlDeletedIP = _data["bgrlDeletedIP"];
+            this.bgrlApprovedStat = _data["bgrlApprovedStat"];
+            this.bgrlApprovedBy = _data["bgrlApprovedBy"];
+            this.bgrlApprovedDT = _data["bgrlApprovedDT"] ? new Date(_data["bgrlApprovedDT"].toString()) : <any>undefined;
+            this.bgrlApprovedIP = _data["bgrlApprovedIP"];
+            this.bgrlRejectReason = _data["bgrlRejectReason"];
+        }
+    }
+
+    static fromJS(data: any): UploadRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UploadRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["bgapRecId"] = this.bgapRecId;
+        data["bgapProjId"] = this.bgapProjId;
+        data["bgapLaNo"] = this.bgapLaNo;
+        data["bgapHawRecId"] = this.bgapHawRecId;
+        data["bgapType"] = this.bgapType;
+        data["bgpbrlPercent"] = this.bgpbrlPercent;
+        data["bgapNo"] = this.bgapNo;
+        data["bgapUserId"] = this.bgapUserId;
+        data["bgapFile"] = this.bgapFile;
+        data["bgapip"] = this.bgapip;
+        data["bgapDate"] = this.bgapDate ? this.bgapDate.toISOString() : <any>undefined;
+        data["bgapDeleted"] = this.bgapDeleted;
+        data["bgrlDeletedBy"] = this.bgrlDeletedBy;
+        data["bgrlDeletedDT"] = this.bgrlDeletedDT ? this.bgrlDeletedDT.toISOString() : <any>undefined;
+        data["bgrlDeletedIP"] = this.bgrlDeletedIP;
+        data["bgrlApprovedStat"] = this.bgrlApprovedStat;
+        data["bgrlApprovedBy"] = this.bgrlApprovedBy;
+        data["bgrlApprovedDT"] = this.bgrlApprovedDT ? this.bgrlApprovedDT.toISOString() : <any>undefined;
+        data["bgrlApprovedIP"] = this.bgrlApprovedIP;
+        data["bgrlRejectReason"] = this.bgrlRejectReason;
+        return data;
+    }
+}
+
+export interface IUploadRequest {
+    bgapRecId?: number | undefined;
+    bgapProjId?: string | undefined;
+    bgapLaNo?: string | undefined;
+    bgapHawRecId?: number | undefined;
+    bgapType?: string | undefined;
+    bgpbrlPercent?: number | undefined;
+    bgapNo?: number | undefined;
+    bgapUserId?: string | undefined;
+    bgapFile?: string | undefined;
+    bgapip?: string | undefined;
+    bgapDate?: Date | undefined;
+    bgapDeleted?: string | undefined;
+    bgrlDeletedBy?: string | undefined;
+    bgrlDeletedDT?: Date | undefined;
+    bgrlDeletedIP?: string | undefined;
+    bgrlApprovedStat?: number | undefined;
+    bgrlApprovedBy?: string | undefined;
+    bgrlApprovedDT?: Date | undefined;
+    bgrlApprovedIP?: string | undefined;
+    bgrlRejectReason?: string | undefined;
 }
 
 export class ApiException extends Error {

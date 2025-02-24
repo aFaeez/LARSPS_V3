@@ -1,4 +1,5 @@
 ﻿import { useEffect } from "react";
+import "../assets/scss/ToastMsg.css";
 import { Toast, ToastHeader, ToastBody } from "reactstrap";
 
 interface ToastMsgProps {
@@ -6,27 +7,25 @@ interface ToastMsgProps {
     type: "success" | "error";
     message: string;
     toggle: () => void;
-    timeout?: number;  // Optional prop
+    timeout?: number;
 }
 
-const ToastMsg = ({ isOpen, type, message, toggle, timeout }: ToastMsgProps) => {
-    const finalTimeout = timeout ?? 3000;  // Ensure timeout is never undefined
-
+const ToastMsg = ({ isOpen, type, message, toggle, timeout = 3000 }: ToastMsgProps) => {
     useEffect(() => {
         if (isOpen) {
             const timer = setTimeout(() => {
                 toggle();
-            }, finalTimeout);
+            }, timeout);
 
             return () => clearTimeout(timer);
         }
-    }, [isOpen, finalTimeout, toggle]);
+    }, [isOpen, timeout, toggle]);
 
     return (
-        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 9999 }}>
-            <Toast isOpen={isOpen} timeout={finalTimeout}>
-                <ToastHeader icon={type === "success" ? "success" : "danger"} toggle={toggle}>
-                    {type === "success" ? "Success" : "Error"}
+        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+            <Toast isOpen={isOpen} fade={true} timeout={timeout} className={`modern-toast ${type === "success" ? "success" : "error"}`} >
+                <ToastHeader className="toast-header-custom" toggle={toggle}>
+                    {type === "success" ? "✅ Success" : "❌ Error"}
                 </ToastHeader>
                 <ToastBody>{message}</ToastBody>
             </Toast>
