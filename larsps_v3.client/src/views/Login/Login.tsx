@@ -6,14 +6,14 @@ import { GetUserRequest, GetUserResponse } from "../../services/apiClient";
 import * as API from "../../services/apiService";
 import * as globalVariable from "../../services/globalVariable";
 import { useSession } from "../../context/SessionContext";
-import useDynamicNavigation from "../../routes/useDynamicNavigation";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
-    const { goTo } = useDynamicNavigation();
-    const { setUserId, setSystemName, setCompanyName, setIsITAdmin, setFullName } = useSession();
+    const { setUserId, setParentSystemName, setCompanyName, setIsITAdmin, setFullName } = useSession();
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({ visible: false, type: "error" as "success" | "error", message: "" });
     const [formData, setFormData] = useState({ username: "", password: "" });
+    const navigate = useNavigate();
 
     // Handle Input Change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,14 +39,14 @@ function Login() {
 
             const config = await API.WebConfig();
             if (config) {
-                setSystemName(config.systemName);
+                setParentSystemName(config.parentSystemName);
                 setCompanyName(config.companyName);
             }
 
             const requestData = {
                 queryType: "USER",
                 userID: formData.username,
-                menuSystemName: config.systemName
+                menuSystemName: config.parentSystemName
             };
 
             const userCredential = await API.LoginCred(requestData as GetUserRequest) as GetUserResponse[];
@@ -60,7 +60,11 @@ function Login() {
                 setIsITAdmin(itAdmin);
 
                 showToast("success", "Login successful! Redirecting...");
-                setTimeout(() => goTo("master (v3)"), 2000);
+                const systemName = config.systemName.replace(/^~\//, ""); 
+                const masterPage = config.landingPage.replace(/^~\//, ""); 
+
+                navigate(`/${systemName}/${masterPage}`, { replace: true });
+
             } else {
                 showToast("error", "Invalid username or password. Please try again.");
             }

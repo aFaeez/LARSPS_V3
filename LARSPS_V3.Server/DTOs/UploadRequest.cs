@@ -3,6 +3,8 @@
     public class UploadRequest
     {
         public long? BGAPRecId { get; set; }
+        public string QueryType { get; set; }
+        public string CompId { get; set; }
         public string BGAPProjId { get; set; }
         public string BGAPLaNo { get; set; }
         public long? BGAPHawRecId { get; set; }

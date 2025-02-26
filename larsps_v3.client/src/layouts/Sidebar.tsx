@@ -8,10 +8,8 @@ import { GetMenuChildRequest, GetMenuChildResponse, GetMenuParentRequest, GetMen
 import * as API from "../services/apiService";
 import useFetchMenuData from "../routes/Path"; 
 
-
-
 const Sidebar = () => {
-    const { userId, isITAdmin, systemName, fullName } = useSession();
+    const { userId, isITAdmin, parentSystemName, fullName } = useSession();
     const [menuItemsParent, setMenuItemsParent] = useState<GetMenuParentResponse[]>([]);
     const [menuItems, setMenuItems] = useState<Record<number, GetMenuChildResponse[]>>({});
     const [openMenus, setOpenMenus] = useState<Record<number, boolean>>({});
@@ -25,9 +23,9 @@ const Sidebar = () => {
                 const requestData: GetMenuParentRequest = {
                     queryType: "GENERATE_MENU",
                     userID: userId,
-                    menuSystemName: systemName,
+                    menuSystemName: parentSystemName,
                     isITAdmin: isITAdmin,
-                    menuSubSystemName: systemName
+                    menuSubSystemName: parentSystemName
                 } as unknown as GetMenuParentRequest;
                 
                 const fetchedMenusParents = await API.fetchParentMenus(requestData);
@@ -45,17 +43,23 @@ const Sidebar = () => {
                         const childRequest: GetMenuChildRequest = {
                             queryType: "GENERATE_MENU_CHILD",
                             userID: userId,
-                            menuSystemName: systemName,
+                            menuSystemName: parentSystemName,
                             isITAdmin: isITAdmin,
                             menuParentID: parent.menuId.toString()
                         } as unknown as GetMenuChildRequest;
                         const fetchedChildMenus = await API.fetchMenus(childRequest);
-
+                        
                         childMenusData[parent.menuId] = fetchedChildMenus
                             .filter((menu): menu is GetMenuChildResponse => menu.menuOrder !== null && menu.menuOrder !== undefined) // Ensure menuOrder exists
                             .sort((a, b) => (a.menuOrder ?? Infinity) - (b.menuOrder ?? Infinity));
+
+                        //Console log each menu's menuURL
+                        fetchedChildMenus.forEach(menu => {
+                            console.log(`Menu Name: ${menu.menuName}, Menu URL: ${menu.menuURL}`);
+                        });
                     }
                 }
+                
                 setMenuItems(childMenusData);
             } catch (error) {
                 console.error("Failed to fetch menus:", error);
@@ -68,6 +72,9 @@ const Sidebar = () => {
     const showMobilemenu = () => {
         document.getElementById("sidebarArea")?.classList.toggle("showSidebar");
     };
+
+   
+ 
 
     return (
         <div>
@@ -129,11 +136,11 @@ const Sidebar = () => {
                                         ))}
                                     </div>
                                 )}
+
+
                             </div>
                         ))}
                 </Nav>
-
-
             </div>
         </div>
     );

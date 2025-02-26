@@ -110,6 +110,11 @@ export interface BGDashboard {
     TotalCount: number;
 }
 
+
+export interface LARDashboard {
+    TotalRecords: number;
+}
+
 export interface UserQSME {
     hawQSME?: string | null;
 }
@@ -138,4 +143,22 @@ export interface AttachmentTable {
     BGRLRejectReason?: string;
     AllowDelete?: string;
     FullFilePath?: string;
+}
+
+
+export interface Settings {
+    itadmin: string;
+    isDebug: string;
+    connDb: string;
+    parentSystemName: string;
+    systemName: string;
+    companyName: string;
+    uploadPath: string;
+    userName: string;
+    userPwd: string;
+    landingPage: string;
+    mainPage: string;
+    defaultPage: string;
+    logoutPage: string;
+    errorPage: string;
 }

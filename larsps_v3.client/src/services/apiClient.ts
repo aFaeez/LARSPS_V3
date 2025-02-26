@@ -1824,6 +1824,8 @@ export interface ISubmitBGRequest {
 
 export class UploadRequest implements IUploadRequest {
     bgapRecId?: number | undefined;
+    queryType?: string | undefined;
+    compId?: string | undefined;
     bgapProjId?: string | undefined;
     bgapLaNo?: string | undefined;
     bgapHawRecId?: number | undefined;
@@ -1856,6 +1858,8 @@ export class UploadRequest implements IUploadRequest {
     init(_data?: any) {
         if (_data) {
             this.bgapRecId = _data["bgapRecId"];
+            this.queryType = _data["queryType"];
+            this.compId = _data["compId"];
             this.bgapProjId = _data["bgapProjId"];
             this.bgapLaNo = _data["bgapLaNo"];
             this.bgapHawRecId = _data["bgapHawRecId"];
@@ -1888,6 +1892,8 @@ export class UploadRequest implements IUploadRequest {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["bgapRecId"] = this.bgapRecId;
+        data["queryType"] = this.queryType;
+        data["compId"] = this.compId;
         data["bgapProjId"] = this.bgapProjId;
         data["bgapLaNo"] = this.bgapLaNo;
         data["bgapHawRecId"] = this.bgapHawRecId;
@@ -1913,6 +1919,8 @@ export class UploadRequest implements IUploadRequest {
 
 export interface IUploadRequest {
     bgapRecId?: number | undefined;
+    queryType?: string | undefined;
+    compId?: string | undefined;
     bgapProjId?: string | undefined;
     bgapLaNo?: string | undefined;
     bgapHawRecId?: number | undefined;

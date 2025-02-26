@@ -4,11 +4,11 @@ import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
 import { UseProject } from "../services/globalVariable";
 import { StatusOptionDTO } from "../dto/dtos";
 import { useSession } from "../context/SessionContext";
-import { FetchProjectsByStatus, FetchProjectStatusOptions } from "../services/apiService";
+import { FetchProjectsByStatus, FetchProjectStatusOptions,GetTotalProject, GetPendingApprovals, GetNearExpiry } from "../services/apiService";
 import { GetProjectRequest, GetProjectResponse } from "../services/apiClient";
 
 const Starter = () => {
-    const { userId } = useSession();
+    const { userId,companyName } = useSession();
     const [data, setData] = useState<GetProjectResponse[]>([]);
     const [statusOptions, setStatusOptions] = useState<StatusOptionDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -59,6 +59,34 @@ const Starter = () => {
             startTransition(() => setStatusOptions(options));
         } catch (err: any) {
             console.error("Error fetching project status options:", err);
+        }
+    };
+
+
+    const [totalProj, setTotProj] = useState<number>(0); // Default to 0
+    const [pending, setPending] = useState<number>(0); // Default to 0
+    const [nearExp, setNearExp] = useState<number>(0); // Default to 0
+    const fetchDashboard = async () => {
+        setLoading(true);
+        try {
+            if (userId && companyName) {
+                const totalProj = await GetTotalProject(userId,companyName);
+                const Count = totalProj[0]?.TotalRecords;
+                setTotProj(Count);
+
+                const pending = await GetPendingApprovals(userId, companyName);
+                const Appr = pending[0]?.TotalRecords;
+                setPending(Appr);
+                
+                const nearExp = await GetNearExpiry(userId,companyName);
+                const Pend = nearExp[0]?.TotalRecords;
+                setNearExp(Pend);
+            }
+
+        } catch (err) {
+            console.error("Error fetching dashboard:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -120,6 +148,7 @@ const Starter = () => {
     useEffect(() => {
         fetchStatusOptions();
         fetchData();
+        fetchDashboard();
     }, []);
 
     return (
@@ -128,19 +157,19 @@ const Starter = () => {
                 <Col md="4">
                     <Card body className="text-center">
                         <CardTitle>Total Projects</CardTitle>
-                        <CardText tag="h3">100</CardText>
+                        <CardText tag="h3">{totalProj}</CardText>
                     </Card>
                 </Col>
                 <Col md="4">
                     <Card body className="text-center">
-                        <CardTitle>Letter of Award (LA) Approvals</CardTitle>
-                        <CardText tag="h3">35</CardText>
-                    </Card>
+                        <CardTitle>Letter of Award (LA) Pending Approvals</CardTitle>
+                        <CardText tag="h3">{pending}</CardText>
+                    </Card>                 
                 </Col>
                 <Col md="4">
                     <Card body className="text-center">
                         <CardTitle>Upcoming LA Expirations</CardTitle>
-                        <CardText tag="h3">7</CardText>
+                        <CardText tag="h3">{nearExp}</CardText>
                     </Card>
                 </Col>
             </Row>

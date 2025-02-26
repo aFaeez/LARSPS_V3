@@ -441,12 +441,14 @@ public static class ProjectStoredProcedureModule
         {
             try
             {
-                var sql = @" EXEC [dbo].[spLS_UpsertBGApUpload] spUpsertBGApUpload @BGAPRecId, @BGAPProjId, @BGAPLaNo, @BGAPHawRecId, @BGAPType, @BGPBRLPercent, " +
-                          "@BGAPNo, @BGAPUserId, @BGAPFile, @BGAPIP, @BGAPDate, @BGAPDeleted, @BGRLDeletedBy, @BGRLDeletedDT, " +
-                          "@BGRLDeletedIP, @BGRLApprovedStat, @BGRLApprovedBy, @BGRLApprovedDT, @BGRLApprovedIP, @BGRLRejectReason";
+                var sql = @"EXEC [dbo].[spLS_UpsertBGApUpload] @QueryType, @CompId, @BGAPRecId, @BGAPProjId, @BGAPLaNo, @BGAPHawRecId, @BGAPType, @BGPBRLPercent, 
+                      @BGAPNo, @BGAPUserId, @BGAPFile, @BGAPIP, @BGAPDate, @BGAPDeleted, @BGRLDeletedBy, @BGRLDeletedDT, 
+                      @BGRLDeletedIP, @BGRLApprovedStat, @BGRLApprovedBy, @BGRLApprovedDT, @BGRLApprovedIP, @BGRLRejectReason";
 
                 var parameters = new SqlParameter[]
                 {
+                    new SqlParameter("@QueryType", request.QueryType ?? (object)DBNull.Value),
+                    new SqlParameter("@CompId", request.CompId ?? (object)DBNull.Value),
                     new SqlParameter("@BGAPRecId", request.BGAPRecId ?? (object)DBNull.Value),
                     new SqlParameter("@BGAPProjId", request.BGAPProjId ?? (object)DBNull.Value),
                     new SqlParameter("@BGAPLaNo", request.BGAPLaNo ?? (object)DBNull.Value),
@@ -466,7 +468,7 @@ public static class ProjectStoredProcedureModule
                     new SqlParameter("@BGRLApprovedBy", request.BGRLApprovedBy ?? (object)DBNull.Value),
                     new SqlParameter("@BGRLApprovedDT", request.BGRLApprovedDT ?? (object)DBNull.Value),
                     new SqlParameter("@BGRLApprovedIP", request.BGRLApprovedIP ?? (object)DBNull.Value),
-                    new SqlParameter("@BGRLRejectReason", request.BGRLRejectReason ?? (object)DBNull.Value),
+                    new SqlParameter("@BGRLRejectReason", request.BGRLRejectReason ?? (object)DBNull.Value)
                 };
 
                 var resultList = await DbHelper.ExecuteStoredProcedureAsync(dbContext, sql, parameters);
@@ -479,8 +481,7 @@ public static class ProjectStoredProcedureModule
         }).WithName("UpsertBGApUpload")
         .Produces<List<GeneralResponse>>(200)
         .Produces(400)
-        .Produces(500); ;
-
+        .Produces(500);
 
         #endregion
 

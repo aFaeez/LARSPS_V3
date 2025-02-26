@@ -1,7 +1,8 @@
-﻿import { lazy } from "react";
+﻿import { lazy, useState, useEffect } from "react";
 import { Navigate, RouteObject } from "react-router-dom";
 import useFetchMenuData from "./Path";
-
+import * as API from "../services/apiService";
+import { Settings } from "../dto/dtos";
 /****Layouts*****/
 const FullLayout = lazy(() => import("../layouts/FullLayout.tsx"));
 /***** Pages ****/
@@ -11,35 +12,47 @@ const MainPage = lazy(() => import("../views/MainPage.tsx"));
 const BankGuarantee = lazy(() => import("../views/Operation/BankGuarantee.tsx"));
 const NotFound = lazy(() => import("../views/NotFound.tsx"));
 
-const BASE_PATH = "/LARSPSv3";
 
 /*****Routes Component******/
 const Themeroutes = (): RouteObject[] => {
     const { isLoading, routes } = useFetchMenuData();
+    const [config, setConfig] = useState<Settings>();
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const response = await API.WebConfig();
+                setConfig(response);
+
+            } catch (error) {
+                console.error("Error fetching config:", error);
+            }
+        };
+        fetchConfig();
+    }, []);
 
     if (isLoading) {
         return [
-            { path: `${BASE_PATH}/login`, element: <Login /> }
+            { path: `/${config?.systemName}/login`, element: <Login /> }
         ];
     }
 
     return [
         {
             path: "/",
-            element: <Navigate to={`${BASE_PATH}/login`} replace />,
+            element: <Navigate to={`/${config?.systemName}/login`} replace />,
         },
         {
-            path: `${BASE_PATH}/login`,
+            path: `${config?.systemName}/Login`,
             element: <Login />,
         },
         {
             path: "/",
             element: <FullLayout />,
             children: [
-                { path: BASE_PATH, element: <Navigate to={`${BASE_PATH}/login`} replace /> },
-                //{ path: routes["master (v3)"], element: <MasterPage /> },
-                { path: routes?.master ? routes["master (v3)"] : `LARSPSv3/MasterPage`, element: <MasterPage /> },
-                { path: routes["dashboard"], element: <MainPage /> },
+                { path: config?.systemName, element: <Navigate to={`/${config?.systemName}/login`} replace /> },
+                { path: `${config?.systemName}/${config?.landingPage?.replace(/^~\//, "")}`, element: <MasterPage /> },
+                { path: `${config?.systemName}/${config?.mainPage?.replace(/^~\//, "")}`, element: <MainPage /> },
                 { path: routes["bank guarantee/advance payment bond"], element: <BankGuarantee /> },
             ],
         },

@@ -1,13 +1,15 @@
 import { Component } from "react";
+import { GetUserIPAddress } from "../../services/globalVariable";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, FormGroup, Input, Label } from "reactstrap";
 import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
 import { AttachmentTable } from "../../dto/dtos";
 import * as API from "../../services/apiService";
-
+import { UploadRequest } from "../../services/apiClient";
+import { useSession } from "../../context/SessionContext";
 interface ModalExampleProps {
     type: "BG" | "APB" | "PBRL";
     className?: string;
-    laNo: string; 
+    laNo: string;
     projectId: string;
     onClose: () => void;
 }
@@ -16,7 +18,6 @@ interface ModalExampleState {
     data: AttachmentTable[];
     files: FileItem[];
 }
-
 interface FileItem {
     name: string;
     size: number;
@@ -91,7 +92,6 @@ const columnsPBRL: MRT_ColumnDef<AttachmentTable>[] = [
     { accessorKey: "AllowDelete", header: "Delete" },
 ];
 
-
 class Uploader extends Component<ModalExampleProps, ModalExampleState> {
     constructor(props: ModalExampleProps) {
         super(props);
@@ -101,6 +101,7 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             files: [],
         };
     }
+   
 
     toggle = () => {
         this.setState((prevState) => ({ modal: !prevState.modal }), () => {
@@ -122,6 +123,47 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
         }));
     };
 
+    uploadFile = async (index: number) => {
+        const file = this.state.files[index];
+        if (!file) return;
+        console.log("Uploading file:", file);
+        await this.handleSubmit(file);
+    };
+
+    handleSubmit = async (file: FileItem) => {
+
+        try {
+            const userId = sessionStorage.getItem("UserId");
+            const companyName = sessionStorage.getItem("CompanyName");
+            const ipAddress = await GetUserIPAddress();
+
+            if (userId && companyName) {
+                const updatedItem: UploadRequest = {
+                    queryType:this.props.type,
+                    bgapUserId: userId,
+                    bgapip: ipAddress,
+                    compId: companyName,
+                    bgapFile: file.name,
+                    bgapProjId: this.props.projectId,
+                    bgapLaNo: this.props.laNo,
+                    bgapType: this.props.type,
+                };
+                console.log("Checkpoint 1");
+                const response = await API.UploadFile(updatedItem);
+                if (response.success) {
+                    console.log("Success");
+                    //this.showToast("success", "File upload successfully!");
+                } else {
+                    console.error("Error");
+                    //this.showToast("error", `Failed: ${response.message}`);
+                }
+            }
+        } catch (err) {
+            console.error("Upload failed:", err);
+            //this.showToast("error", "Something went wrong. Please try again.");
+        }
+    };
+
     removeFile = (index: number) => {
         this.setState((prevState) => ({
             files: prevState.files.filter((_, i) => i !== index),
@@ -134,17 +176,17 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             if (config) {
 
                 const fetchedData = await API.FetchGetFile(this.props.laNo, this.props.projectId);
+                //console.log("Fetched Data:", JSON.stringify(fetchedData, null, 2));
 
                 const sanitizedData = fetchedData.map(item => ({
                     ...item,
+                    BGAPType: item.BGAPType?.trim(), // Trim whitespace from BGAPType
                     FullFilePath: config.uploadPath + item.BGAPFile,
                     BGPBRLPercent: typeof item.BGPBRLPercent === "object" ? "N/A" : item.BGPBRLPercent
                 }));
 
                 this.setState({ data: sanitizedData });
             }
-
-            
         } catch (err) {
             console.error("Error fetching files:", err);
         }
@@ -155,8 +197,6 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
     }
 
     render() {
-
-
         const columns =
             this.props.type === "BG"
                 ? columnsBG
@@ -170,6 +210,8 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                 : this.props.type === "APB"
                     ? "Upload APB File"
                     : "Upload PBRL File";
+
+        const filteredData = this.state.data.filter((item) => item.BGAPType === this.props.type);
 
         return (
             <div>
@@ -240,9 +282,15 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                                                 <strong>{file.name}</strong> <br />
                                                 <small>{(file.size / 1024).toFixed(2)} KB - {file.type}</small>
                                             </div>
-                                            <Button color="danger" size="sm" onClick={() => this.removeFile(index)}>
-                                                Remove
-                                            </Button>
+
+                                            <div>
+                                                <Button color="primary" size="sm" onClick={() => this.uploadFile(index)}>
+                                                    Upload
+                                                </Button>
+                                                <Button color="danger" size="sm" className="ms-2" onClick={() => this.removeFile(index)}>
+                                                    Remove
+                                                </Button>
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -250,24 +298,25 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                         </div>
                         <hr className="my-4" />
 
-                        
-
                         {/* Table */}
                         <MaterialReactTable
                             columns={columns}
-                            data={this.state.data}
+                            data={filteredData} 
                             muiTableBodyCellProps={{ sx: { fontSize: "1rem" } }}
                             enablePagination
                             enableSorting
                             enableGlobalFilter
                             renderEmptyRowsFallback={() => <div>No data available</div>}
                         />
+
                     </ModalBody>
                     <ModalFooter>
                         <Button color="secondary" onClick={this.toggle}>
                             Close
                         </Button>
                     </ModalFooter>
+
+                    
                 </Modal>
             </div>
         );

@@ -5,12 +5,14 @@ interface SessionContextType {
     userId: string | null;
     isITAdmin: number;
     connDb: string | null;
+    parentSystemName: string | null;
     systemName: string | null;
     companyName: string | null;
     fullName: string | null;
     setUserId: (userId: string) => void;
     setIsITAdmin: (isAdmin: number) => void;
     setConnDb: (connDb: string) => void;
+    setParentSystemName: (parentSystemName: string) => void;
     setSystemName: (systemName: string) => void;
     setCompanyName: (companyName: string) => void;
     setFullName: (fullName: string) => void;
@@ -37,6 +39,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     const [userId, setUserId] = useState<string | null>(sessionStorage.getItem('UserId') ?? null);
     const [isITAdmin, setIsITAdmin] = useState<number>(parseInt(sessionStorage.getItem('IsITAdmin') || '0', 10));
     const [connDb, setConnDb] = useState<string | null>(sessionStorage.getItem('ConnDb') ?? null);
+    const [parentSystemName, setParentSystemName] = useState<string | null>(sessionStorage.getItem('ParentSystemName') ?? null);
     const [systemName, setSystemName] = useState<string | null>(sessionStorage.getItem('SystemName') ?? null);
     const [companyName, setCompanyName] = useState<string | null>(sessionStorage.getItem('CompanyName') ?? null);
     const [fullName, setFullName] = useState<string | null>(sessionStorage.getItem('FullName') ?? null);
@@ -46,11 +49,12 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     useEffect(() => {
         if (userId) sessionStorage.setItem('UserId', userId);
         if (connDb) sessionStorage.setItem('ConnDb', connDb);
+        if (parentSystemName) sessionStorage.setItem('ParentSystemName', parentSystemName);
         if (systemName) sessionStorage.setItem('SystemName', systemName);
         if (companyName) sessionStorage.setItem('CompanyName', companyName);
         if (fullName) sessionStorage.setItem('FullName', fullName); 
         sessionStorage.setItem('IsITAdmin', isITAdmin.toString());
-    }, [userId, isITAdmin, connDb, systemName, companyName,fullName]);
+    }, [userId, isITAdmin, connDb, parentSystemName, systemName, companyName,fullName]);
 
     //macam tak pakai
     // Fetch system settings including ITADMIN role
@@ -69,6 +73,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
 
                 setIsITAdmin(isAdmin);
                 setConnDb(data.connDb || null);
+                setParentSystemName(data.parentSystemName || null);
                 setSystemName(data.systemName || null);
                 setCompanyName(data.companyName || null);
             } catch (error) {
@@ -81,7 +86,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     }, [userId]);
 
     return (
-        <SessionContext.Provider value={{ userId, isITAdmin, connDb, systemName, companyName, fullName, setUserId, setIsITAdmin, setConnDb, setSystemName, setCompanyName, setFullName }}>
+        <SessionContext.Provider value={{ userId, isITAdmin, connDb, parentSystemName, systemName, companyName, fullName, setUserId, setIsITAdmin, setConnDb, setParentSystemName, setSystemName, setCompanyName, setFullName }}>
             {children}
         </SessionContext.Provider>
     );

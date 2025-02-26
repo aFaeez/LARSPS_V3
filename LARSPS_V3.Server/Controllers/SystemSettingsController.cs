@@ -22,14 +22,31 @@
                 itadmin = _configuration["AppSettings:ITADMIN"],
                 isDebug = _configuration["AppSettings:IsDebug"],
                 connDb = _configuration["AppSettings:ConnDbLARSPSv2"],
+
+                parentSystemName = _configuration["AppSettings:ParentSystemName"],
                 systemName = _configuration["AppSettings:SystemName"],
                 companyName = _configuration["AppSettings:CompanyName"],
 
                 uploadPath = _configuration["AppSettings:LAN_UPLOAD_PATH"],
                 userDomain = _configuration["AppSettings:UploadUser_Domain"],
                 userName = _configuration["AppSettings:UploadUser_Name"],
-                userPwd = _configuration["AppSettings:UploadUser_Pwd"]
-        };
+                userPwd = _configuration["AppSettings:UploadUser_Pwd"],
+
+                // Start Pages
+                landingPage = _configuration["AppSettings:LandingPage"],
+                mainPage = _configuration["AppSettings:MainPage"],
+                defaultPage = _configuration["AppSettings:DefaultPage"],
+                logoutPage = _configuration["AppSettings:LogoutPage"],
+                errorPage = _configuration["AppSettings:ErrorPage"],
+                // End Pages
+
+                itEmail = _configuration["AppSettings:ITEmail"],
+                recipient = _configuration["AppSettings:Recipient"],
+                isBlockEmail = _configuration["AppSettings:IsBlockEmail"],
+
+                // Host Config - Allowed Hosts as an array
+                allowedHosts = _configuration.GetSection("AppSettings:HostConfig:AllowedHosts").Get<string[]>()
+            };
             return Ok(settings);
         }
 

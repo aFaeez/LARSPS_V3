@@ -1,7 +1,7 @@
 ﻿import axiosInstance from "./axiosInstance";
 import * as globalVariable from "./globalVariable";
 import * as apiClient from "./apiClient";
-import { StatusOptionDTO, BGDTO, BGSub, BGDashboard,  APB, AttachmentTable } from "../dto/dtos";
+import { StatusOptionDTO, BGDTO, BGSub, BGDashboard, APB, AttachmentTable, Settings, LARDashboard } from "../dto/dtos";
 
 const apiService = {
     // Fetch user projects from the stored procedure
@@ -20,17 +20,6 @@ const apiService = {
 };
 export default apiService;
 
-export interface Settings {
-    itadmin: string;
-    isDebug: string;
-    connDb: string;
-    systemName: string;
-    companyName: string;
-    uploadPath: string;
-    userName: string;
-    userPwd: string;
-}
-
 export const WebConfig = async (): Promise<Settings> => {
     try {
         const response = await axiosInstance.get<Settings>("/api/settings");
@@ -40,6 +29,29 @@ export const WebConfig = async (): Promise<Settings> => {
         throw new Error("Failed to fetch settings. Please try again.");
     }
 };
+
+export const FetchRedirectData = async (): Promise<{ redirectURL: string }> => {
+    try {
+        const response = await axiosInstance.get<{ redirectURL: string }>("/api/redirect", {
+            params: {
+                mod: new URLSearchParams(window.location.search).get("mod"),
+                userid: sessionStorage.getItem("Login"),
+                position: sessionStorage.getItem("UsePosition"),
+                project: sessionStorage.getItem("Project"),
+            },
+        });
+
+        if (!response.data.redirectURL) {
+            throw new Error("Invalid redirect URL");
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching settings. Please try again.", error);
+        throw new Error("Failed to fetch redirect data.");
+    }
+};
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Fetch project data by status ID
@@ -76,6 +88,40 @@ export const FetchProjectStatusOptions = async (): Promise<StatusOptionDTO[]> =>
     } catch (error) {
         console.error("Error fetching project status options:", error);
         throw new Error("Failed to fetch project status options. Please try again.");
+    }
+};
+
+// GET TotalProject
+export const GetTotalProject = async (userId: string, companyName: string): Promise<LARDashboard[]> => {
+    try {
+        const response = await axiosInstance.post("/LARDashboard_1", { compIdStr: companyName, userIdStr: userId });
+        console.log("Checkpoint 1: " + response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching LARDashboard_1:", error);
+        throw new Error("Failed to fetch LARDashboard_1. Please try again.");
+    }
+};
+
+// GET PendingApprovals
+export const GetPendingApprovals = async (userId: string, companyName: string): Promise<LARDashboard[]> => {
+    try {
+        const response = await axiosInstance.post("/LARDashboard_2", { compIdStr: companyName, userIdStr: userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching LARDashboard_2:", error);
+        throw new Error("Failed to fetch LARDashboard_2. Please try again.");
+    }
+};
+
+// GET NearExpiry
+export const GetNearExpiry = async (userId: string, companyName: string): Promise<LARDashboard[]> => {
+    try {
+        const response = await axiosInstance.post("/LARDashboard_3", { compIdStr: companyName, userIdStr: userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching LARDashboard_3:", error);
+        throw new Error("Failed to fetch LARDashboard_3. Please try again.");
     }
 };
 
