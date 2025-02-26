@@ -5,7 +5,6 @@ import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
 import { AttachmentTable } from "../../dto/dtos";
 import * as API from "../../services/apiService";
 import { UploadRequest } from "../../services/apiClient";
-import { useSession } from "../../context/SessionContext";
 interface ModalExampleProps {
     type: "BG" | "APB" | "PBRL";
     className?: string;
@@ -101,8 +100,6 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             files: [],
         };
     }
-   
-
     toggle = () => {
         this.setState((prevState) => ({ modal: !prevState.modal }), () => {
             if (!this.state.modal) {
@@ -137,7 +134,30 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             const companyName = sessionStorage.getItem("CompanyName");
             const ipAddress = await GetUserIPAddress();
 
+            if (!(file instanceof File)) {
+                console.warn("Converting FileItem to File...");
+
+                // Extract a valid filename
+                const fileName = (file as any).name || "uploaded_file.pdf";
+
+                // Convert FileItem to File
+                file = new File([file as Blob], fileName, {
+                    type: "application/pdf",
+                    lastModified: Date.now(),
+                });
+            }
+
             if (userId && companyName) {
+                // Step 1: Upload file physically
+                const fileUploadResponse = await API.BGPhysicalFile(file);
+
+                if (fileUploadResponse.success) {
+                    console.log("File uploaded successfully:", fileUploadResponse.filePath);
+                } else {
+                    console.error("File upload failed:", fileUploadResponse.message);
+                }
+
+                // Step 2: Save file details in the database
                 const updatedItem: UploadRequest = {
                     queryType:this.props.type,
                     bgapUserId: userId,
@@ -148,9 +168,10 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                     bgapLaNo: this.props.laNo,
                     bgapType: this.props.type,
                 };
-                console.log("Checkpoint 1");
+                
                 const response = await API.UploadFile(updatedItem);
                 if (response.success) {
+                    this.fetchDataFile();
                     console.log("Success");
                     //this.showToast("success", "File upload successfully!");
                 } else {

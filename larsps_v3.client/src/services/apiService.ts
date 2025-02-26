@@ -397,14 +397,14 @@ export const FetchGetFile = async (LaNo: string, project: string): Promise<Attac
             BGAPUserId: item.BGAPUserId || "N/A",
             BGAPFile: item.BGAPFile || "N/A",
             BGAPIP: item.BGAPIP || "N/A",
-            BGAPDate: globalVariable.ValidateAndFormatDate(item.BGAPDate),
+            BGAPDate: item.BGAPDate,
             BGAPDeleted: item.BGAPDeleted || "N/A",
             BGRLDeletedBy: item.BGRLDeletedBy || "N/A",
-            BGRLDeletedDT: globalVariable.ValidateAndFormatDate(item.BGRLDeletedDT),
+            BGRLDeletedDT: item.BGRLDeletedDT,
             BGRLDeletedIP: item.BGRLDeletedIP || "N/A",
             BGRLApprovedStat: item.BGRLApprovedStat || 0,
             BGRLApprovedBy: item.BGRLApprovedBy || "N/A",
-            BGRLApprovedDT: globalVariable.ValidateAndFormatDate(item.BGRLApprovedDT),
+            BGRLApprovedDT: item.BGRLApprovedDT,
             BGRLApprovedIP: item.BGRLApprovedIP || "N/A",
             BGRLRejectReason: item.BGRLRejectReason || "N/A",
             AllowDelete: item.AllowDelete || 0,
@@ -431,7 +431,34 @@ export const UploadFile = async (formData: apiClient.UploadRequest): Promise<api
     }
 };
 
+export const BGPhysicalFile = async (file: FileItem): Promise<any> => {
+    try {
+        if (!(file instanceof File)) {
+            console.error("Invalid file type detected, upload skipped.");
+            console.log("File received:", file);
+            throw new Error("Invalid file format. Upload skipped.");
+        }
 
+        if (file.type !== "application/pdf") {
+            console.error("Only PDF files are allowed.");
+            throw new Error("Only PDF files are allowed.");
+        }
+
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+
+        console.log("Uploading File:", file.name, "Size:", file.size, "Type:", file.type);
+
+        const response = await axiosInstance.post("/BGPhysicalFile", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error uploading file:", error);
+        throw new Error("Failed to upload.");
+    }
+};
 
 
 export const LoginCred = async (requestData: apiClient.GetUserRequest): Promise<apiClient.GetUserResponse[]> => {

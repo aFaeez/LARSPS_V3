@@ -46,6 +46,7 @@ else
     app.Map("/error", () => Results.Problem("An unexpected error occurred."));
 }
 
+
 app.UseExceptionHandler(_ => { });
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();

@@ -483,6 +483,39 @@ public static class ProjectStoredProcedureModule
         .Produces(400)
         .Produces(500);
 
+        app.MapPost("/BGPhysicalFile", async (HttpContext context) =>
+        {
+            try
+            {
+                var form = await context.Request.ReadFormAsync();
+                var file = form.Files.FirstOrDefault();
+
+                if (file == null || file.Length == 0)
+                    return Results.BadRequest(new { success = false, message = "No file uploaded" });
+
+                if (file.ContentType != "application/pdf" || !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                    return Results.BadRequest(new { success = false, message = "Only PDF files are allowed." });
+
+                string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+
+                if (!Directory.Exists(uploadFolder))
+                    Directory.CreateDirectory(uploadFolder);
+
+                string filePath = Path.Combine(uploadFolder, file.FileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return Results.Ok(new { success = true, filePath = $"/uploads/{file.FileName}" });
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        });
+
         #endregion
 
         #region ACM Connection
