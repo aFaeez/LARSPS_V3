@@ -18,7 +18,7 @@ const NotFound = () => {
                         style={{ maxWidth: "250px" }}
                     />
                     <div>
-                        <Button color="primary" tag={Link} to="/" className="me-2">
+                        <Button color="primary" tag={Link} to="LARSPSv3/MainPage" className="me-2">
                             Go to Home
                         </Button>
                         <Button color="secondary" onClick={() => window.history.back()}>

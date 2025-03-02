@@ -119,7 +119,7 @@ const Starter = () => {
                 const valueType = cell.getValue();
                 if (valueType && Object.keys(valueType).length > 0 && typeof valueType === "string") {
                     return (
-                        <Badge color="primary" className="ms-3" pill>
+                        <Badge color="primary" style={{ fontSize: "inherit", padding: "5px 10px" }}>
                             {valueType}
                         </Badge>
                     );
@@ -133,11 +133,11 @@ const Starter = () => {
             Cell: ({ cell }) => {
                 const valueFS = cell.getValue();
                 return valueFS === 1 ? (
-                    <Badge color="primary" className="ms-3" pill>
+                    <Badge color="primary" style={{ fontSize: "inherit", padding: "5px 10px" }}>
                         Yes
                     </Badge>
                 ) : (
-                    <Badge color="secondary" className="ms-3" pill>
+                    <Badge color="secondary"  style={{ fontSize: "inherit", padding: "5px 10px" }}>
                         No
                     </Badge>
                 );

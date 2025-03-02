@@ -133,7 +133,7 @@ const BankGuarantee: React.FC = () => {
                     value === "Yes" || value === "PBRL Retention" || value === "PBRL ContSum";
 
                 return (
-                    <Badge color={isApproved ? "success" : "danger"}>
+                    <Badge color={isApproved ? "success" : "danger"} style={{ fontSize: "inherit", padding: "5px 10px" }}>
                         {isApproved ? "Activated" : "Pending"}
                     </Badge>
                 );

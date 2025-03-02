@@ -23,34 +23,36 @@ export default apiService;
 export const WebConfig = async (): Promise<Settings> => {
     try {
         const response = await axiosInstance.get<Settings>("/api/settings");
+        //console.log("Checker 2:", JSON.stringify(response.data, null, 2));
         return response.data;
+        
     } catch (error) {
         console.error("Error fetching settings. Please try again.", error);
         throw new Error("Failed to fetch settings. Please try again.");
     }
 };
 
-export const FetchRedirectData = async (): Promise<{ redirectURL: string }> => {
-    try {
-        const response = await axiosInstance.get<{ redirectURL: string }>("/api/redirect", {
-            params: {
-                mod: new URLSearchParams(window.location.search).get("mod"),
-                userid: sessionStorage.getItem("Login"),
-                position: sessionStorage.getItem("UsePosition"),
-                project: sessionStorage.getItem("Project"),
-            },
-        });
+//export const FetchRedirectData = async (): Promise<{ redirectURL: string }> => {
+//    try {
+//        const response = await axiosInstance.get<{ redirectURL: string }>("/api/redirect", {
+//            params: {
+//                mod: new URLSearchParams(window.location.search).get("mod"),
+//                userid: sessionStorage.getItem("Login"),
+//                position: sessionStorage.getItem("UsePosition"),
+//                project: sessionStorage.getItem("Project"),
+//            },
+//        });
 
-        if (!response.data.redirectURL) {
-            throw new Error("Invalid redirect URL");
-        }
+//        if (!response.data.redirectURL) {
+//            throw new Error("Invalid redirect URL");
+//        }
 
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching settings. Please try again.", error);
-        throw new Error("Failed to fetch redirect data.");
-    }
-};
+//        return response.data;
+//    } catch (error) {
+//        console.error("Error fetching settings. Please try again.", error);
+//        throw new Error("Failed to fetch redirect data.");
+//    }
+//};
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -501,5 +503,53 @@ export const fetchMenus = async (requestData: apiClient.GetMenuChildRequest): Pr
     } catch (error) {
         console.error("Failed to fetch menus:", error);
         throw new Error("Failed to fetch menus");
+    }
+};
+
+export const GetMenus = async (userId: string, isITAdmin: number, parentSystemName: string) => {
+    try {
+        const requestData: apiClient.GetMenuParentRequest = {
+            queryType: "GENERATE_MENU",
+            userID: userId,
+            menuSystemName: parentSystemName,
+            isITAdmin: isITAdmin,
+            menuSubSystemName: parentSystemName,
+        } as unknown as apiClient.GetMenuParentRequest;
+
+        const fetchedParents = await fetchParentMenus(requestData);
+
+        const sortedParents = fetchedParents
+            .filter((menu): menu is apiClient.GetMenuParentResponse => menu.menuOrder !== null && menu.menuOrder !== undefined && menu.menuId !== undefined)
+            .sort((a, b) => (a.menuOrder ?? Infinity) - (b.menuOrder ?? Infinity));
+
+        const childMenusData: Record<number, apiClient.GetMenuChildResponse[]> = {};
+
+        for (const parent of sortedParents) {
+            if (parent.menuId !== undefined) {
+                const childRequest: apiClient.GetMenuChildRequest = {
+                    queryType: "GENERATE_MENU_CHILD",
+                    userID: userId,
+                    menuSystemName: parentSystemName,
+                    isITAdmin: isITAdmin,
+                    menuParentID: parent.menuId.toString(),
+                } as unknown as apiClient.GetMenuChildRequest;
+
+                const fetchedChildMenus = await fetchMenus(childRequest);
+
+                childMenusData[parent.menuId] = fetchedChildMenus
+                    .filter((menu): menu is apiClient.GetMenuChildResponse => menu.menuOrder !== null && menu.menuOrder !== undefined)
+                    .sort((a, b) => (a.menuOrder ?? Infinity) - (b.menuOrder ?? Infinity));
+
+                //Console log each menu's menuURL
+                //fetchedChildMenus.forEach(menu => {
+                //    console.log(`Menu Name: ${menu.menuName}, Menu URL: ${menu.menuURL}`);
+                //});
+            }
+        }
+
+        return { sortedParents, childMenusData };
+    } catch (error) {
+        console.error("Failed to fetch menus:", error);
+        return { sortedParents: [], childMenusData: {} };
     }
 };

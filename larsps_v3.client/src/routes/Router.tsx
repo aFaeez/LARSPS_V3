@@ -1,8 +1,9 @@
 ﻿import { lazy, useState, useEffect } from "react";
 import { Navigate, RouteObject } from "react-router-dom";
-import useFetchMenuData from "./Path";
+import Path from "./Path";
 import * as API from "../services/apiService";
 import { Settings } from "../dto/dtos";
+import RedirectHandler from "./RedirectHandler.tsx";
 /****Layouts*****/
 const FullLayout = lazy(() => import("../layouts/FullLayout.tsx"));
 /***** Pages ****/
@@ -15,21 +16,35 @@ const NotFound = lazy(() => import("../views/NotFound.tsx"));
 
 /*****Routes Component******/
 const Themeroutes = (): RouteObject[] => {
-    const { isLoading, routes } = useFetchMenuData();
+    const { isLoading, routes } = Path();
     const [config, setConfig] = useState<Settings>();
+    const [isConfigLoaded, setIsConfigLoaded] = useState(false);
 
     useEffect(() => {
         const fetchConfig = async () => {
             try {
                 const response = await API.WebConfig();
-                setConfig(response);
+                //console.log("Config Fetched:", response);
 
+                setConfig(response);
+                setIsConfigLoaded(true);
             } catch (error) {
                 console.error("Error fetching config:", error);
+                setIsConfigLoaded(true); // Ensure it doesn't hang on loading
             }
         };
         fetchConfig();
     }, []);
+
+    // Prevent rendering routes if config is not loaded
+    if (!isConfigLoaded) {
+        return [{ path: "*", element: <div>Loading...</div> }];
+    }
+
+    // If config failed to load, show an error page
+    if (!config) {
+        return [{ path: "*", element: <div>Error loading configuration.</div> }];
+    }
 
     if (isLoading) {
         return [
@@ -40,7 +55,7 @@ const Themeroutes = (): RouteObject[] => {
     return [
         {
             path: "/",
-            element: <Navigate to={`/${config?.systemName}/login`} replace />,
+            element: <Navigate to={`/${config?.systemName}/Login`} replace />,
         },
         {
             path: `${config?.systemName}/Login`,
@@ -50,12 +65,18 @@ const Themeroutes = (): RouteObject[] => {
             path: "/",
             element: <FullLayout />,
             children: [
-                { path: config?.systemName, element: <Navigate to={`/${config?.systemName}/login`} replace /> },
+                { path: config?.systemName, element: <Navigate to={`/${config?.systemName}/Login`} replace /> },
                 { path: `${config?.systemName}/${config?.landingPage?.replace(/^~\//, "")}`, element: <MasterPage /> },
                 { path: `${config?.systemName}/${config?.mainPage?.replace(/^~\//, "")}`, element: <MainPage /> },
                 { path: routes["bank guarantee/advance payment bond"], element: <BankGuarantee /> },
             ],
         },
+        // Redirect Routes
+        ...Object.values(routes).map((route) => ({
+            path: route,
+            element: <RedirectHandler />,
+        })),
+        //{ path: "/LARSPSv2/Operation/ExtensionOfTime", element: <RedirectHandler /> },
         {
             path: "*",
             element: <NotFound />,
