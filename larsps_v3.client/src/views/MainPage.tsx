@@ -213,9 +213,10 @@ const Starter = () => {
                                         renderEmptyRowsFallback={() => <div>No data available</div>}
                                         muiTableBodyRowProps={({ row }) => ({
                                             onClick: () => handleRowClick(row.original),
-                                            style: {
+                                            sx: {
                                                 cursor: "pointer",
-                                                backgroundColor: row.original.proProjectId === selectedRowId ? "#562F61" : "transparent",
+                                                backgroundColor: row.original.proProjectId === selectedRowId ? "#D3D3D3" : "transparent",
+                                                transition: "background-color 0.2s ease-in-out",
                                             },
                                         })}
                                     />

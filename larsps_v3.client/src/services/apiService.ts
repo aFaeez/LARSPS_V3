@@ -97,7 +97,7 @@ export const FetchProjectStatusOptions = async (): Promise<StatusOptionDTO[]> =>
 export const GetTotalProject = async (userId: string, companyName: string): Promise<LARDashboard[]> => {
     try {
         const response = await axiosInstance.post("/LARDashboard_1", { compIdStr: companyName, userIdStr: userId });
-        console.log("Checkpoint 1: " + response.data);
+        //console.log("Checkpoint 1: " + response.data);
         return response.data;
     } catch (error) {
         console.error("Error fetching LARDashboard_1:", error);
@@ -182,12 +182,13 @@ export const FetchBGSub = async (LANo: string): Promise<BGSub[]> => {
             Attachment: globalVariable.IsEmptyObject(item.Attachment)? null : item.Attachment,
             HawProjId: globalVariable.IsEmptyObject(item.HawProjId) ? null : item.HawProjId,
             HawRecId: item.HawRecId || 0,
-            PBReplacementLetter: globalVariable.IsEmptyObject(item.PBReplacementLetter) ? null : item.PBReplacementLetter,
-            PBReplacementLetterOption: globalVariable.IsEmptyObject(item.PBReplacementLetter) ? null : item.PBReplacementLetter,
+            PBReplacementLetter: item.PBReplacementLetter,
+            PBReplacementLetterOption: item.PBReplacementLetterOption,
             BGUserId: globalVariable.IsEmptyObject(item.BGUserId) ? null : item.BGUserId,
             BGRecDate: globalVariable.ValidateAndFormatDate(item.BGRecDate), 
             BGRecId: item.BGRecId || 0,
         }));
+        //console.log("Checkpoint 1 :", mappedData);
         return mappedData;
     } catch (error) {
         console.error("Error fetching BGSub:", error);
@@ -296,7 +297,7 @@ export const GetPending = async (UPProjectId: string, companyName: string): Prom
 // Submit BG
 export const SubmitBG = async (formData: apiClient.SubmitBGRequest): Promise<apiClient.GeneralResponse> => {
     try {
-        console.log("Form Data:", formData);
+        //console.log("Form Data:", formData);
         const response = await axiosInstance.post<apiClient.GeneralResponse>("/SubmitBG", formData, {
             headers: { "Content-Type": "application/json" }
         });
@@ -310,7 +311,7 @@ export const SubmitBG = async (formData: apiClient.SubmitBGRequest): Promise<api
 
 export const SubmitAPB = async (formData: apiClient.SubmitAPBRequest): Promise<apiClient.GeneralResponse> => {
     try {
-        console.log("Form Data:", formData);
+        //console.log("Form Data:", formData);
         const response = await axiosInstance.post<apiClient.GeneralResponse>("/SubmitAPB", formData, {
             headers: { "Content-Type": "application/json" }
         });
@@ -421,7 +422,7 @@ export const FetchGetFile = async (LaNo: string, project: string): Promise<Attac
 
 export const UploadFile = async (formData: apiClient.UploadRequest): Promise<apiClient.GeneralResponse> => {
     try {
-        console.log("Form Data:", formData);
+        //console.log("Form Data:", formData);
         const response = await axiosInstance.post<apiClient.GeneralResponse>("/UpsertBGApUpload", formData, {
             headers: { "Content-Type": "application/json" }
         });
@@ -437,7 +438,7 @@ export const BGPhysicalFile = async (file: FileItem): Promise<any> => {
     try {
         if (!(file instanceof File)) {
             console.error("Invalid file type detected, upload skipped.");
-            console.log("File received:", file);
+            //console.log("File received:", file);
             throw new Error("Invalid file format. Upload skipped.");
         }
 

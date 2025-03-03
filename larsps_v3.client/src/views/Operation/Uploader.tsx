@@ -1,4 +1,5 @@
-import { Component } from "react";
+import { Component, useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
 import { GetUserIPAddress } from "../../services/globalVariable";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, FormGroup, Input, Label } from "reactstrap";
 import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
@@ -23,18 +24,39 @@ interface FileItem {
     type: string;
 }
 
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+const PdfViewer = ({ fileUrl }) => {
+    const [numPages, setNumPages] = useState(null);
+
+    return (
+        <Document file={fileUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+            {Array.from(new Array(numPages), (el, index) => (
+                <Page key={`page_${index + 1}`} pageNumber={index + 1} />
+            ))}
+        </Document>
+    );
+};
+
 const columnsBG: MRT_ColumnDef<AttachmentTable>[] = [
     {
         accessorKey: "BGAPFile",
         header: "File Name",
         Cell: ({ row }) => {
-            const fileName = row.original.BGAPFile; // Display only file name
-            const fullFilePath = row.original.FullFilePath; // Use full path for link
+            const fileName = row.original.BGAPFile;
+            const fullFilePath = row.original.FullFilePath;
 
             return (
-                <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
-                    {fileName}
-                </a>
+                <>
+                    {fileName.endsWith(".pdf") ? (
+                        <Button color="link" onClick={() => PdfViewer(fullFilePath)}>
+                            {fileName}
+                        </Button>
+                    ) : (
+                        <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
+                            {fileName}
+                        </a>
+                    )}
+                </>
             );
         },
     },
@@ -167,6 +189,9 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                     bgapProjId: this.props.projectId,
                     bgapLaNo: this.props.laNo,
                     bgapType: this.props.type,
+
+                    //bgpbrlPercent: this.state.dd,   // Deduct ContSum / Increase Ret (%)
+                    //pbrlOption: this.state.pbrlOption, // Yes or No
                 };
                 
                 const response = await API.UploadFile(updatedItem);
@@ -292,7 +317,6 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                             </Button>
                         </div>
 
-
                         {/* File List */}
                         <div>
                             {this.state.files.length > 0 && (
@@ -336,8 +360,6 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
                             Close
                         </Button>
                     </ModalFooter>
-
-                    
                 </Modal>
             </div>
         );
