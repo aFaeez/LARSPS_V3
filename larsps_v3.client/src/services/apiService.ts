@@ -434,7 +434,7 @@ export const UploadFile = async (formData: apiClient.UploadRequest): Promise<api
     }
 };
 
-export const BGPhysicalFile = async (file: FileItem): Promise<any> => {
+export const BGPhysicalFile = async (file: File): Promise<any> => {
     try {
         if (!(file instanceof File)) {
             console.error("Invalid file type detected, upload skipped.");

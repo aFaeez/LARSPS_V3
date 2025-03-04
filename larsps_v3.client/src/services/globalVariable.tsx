@@ -116,14 +116,24 @@ export function ValidateAndFormatDateOnly(date: any): string {
     return `${year}-${month}-${day}`;
 }
 
-export function validateAndISOFormatDate(date: any): string | null {
-    if (!date) return null; // Instead of ""
+//export function validateAndISOFormatDate(date: any): string | null {
+//    if (!date) return null; // Instead of ""
+
+//    const parsedDate = new Date(date);
+//    if (isNaN(parsedDate.getTime())) return null; // Return null for invalid dates
+
+//    return parsedDate.toISOString();
+//}
+
+export function validateAndISOFormatDate(date: any): Date | undefined {
+    if (!date) return undefined; // Return undefined instead of null
 
     const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) return null; // Return null for invalid dates
+    if (isNaN(parsedDate.getTime())) return undefined; // Invalid date handling
 
-    return parsedDate.toISOString();
+    return parsedDate;
 }
+
 
 
 export function ValidateAndFormatDateAndTime(date: any): string {

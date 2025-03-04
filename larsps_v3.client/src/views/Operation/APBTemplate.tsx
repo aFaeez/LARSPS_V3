@@ -74,21 +74,36 @@ const APBTemplate: React.FC<APBTemplateProps> = ({ strProjId,strLA }) => {
                 if (targetItemIndex !== -1) {
                     const targetItem = formData[targetItemIndex];
 
-                    const updatedItem: SubmitAPBRequest = {
-                        apbLaNo: targetItem.APBLaNo,
-                        apbAmount: targetItem.APBAmount,
-                        apbDate: globalVariable.validateAndISOFormatDate(targetItem.APBDate),
-                        apbExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.APBExpiryDate),
-                        apbExtDate: globalVariable.validateAndISOFormatDate(targetItem.APBExtDate),
-                        apbProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.APBProvidedDate),
-                        apbRefNo: targetItem.APBRefNo,
-                        apbBank: targetItem.APBBank,
-                        apbUserId: userId,
-                        apbRecDate: globalVariable.validateAndISOFormatDate(currentDate),
-                        apbRecId: targetItem.APBRecId,
-                        apbUserIPAddr: ipAddress,
-                        apbCompId: companyName,
-                    };
+                    //const updatedItem: SubmitAPBRequest = {
+                    //    apbLaNo: targetItem.APBLaNo,
+                    //    apbAmount: targetItem.APBAmount,
+                    //    apbDate: globalVariable.validateAndISOFormatDate(targetItem.APBDate),
+                    //    apbExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.APBExpiryDate),
+                    //    apbExtDate: globalVariable.validateAndISOFormatDate(targetItem.APBExtDate),
+                    //    apbProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.APBProvidedDate),
+                    //    apbRefNo: targetItem.APBRefNo,
+                    //    apbBank: targetItem.APBBank,
+                    //    apbUserId: userId,
+                    //    apbRecDate: globalVariable.validateAndISOFormatDate(currentDate),
+                    //    apbRecId: targetItem.APBRecId,
+                    //    apbUserIPAddr: ipAddress,
+                    //    apbCompId: companyName,
+                    //};
+
+                    const updatedItem = new SubmitAPBRequest();
+
+                    updatedItem.apbLaNo = targetItem.APBLaNo;
+                    updatedItem.apbAmount = targetItem.APBAmount;
+                    updatedItem.apbDate = globalVariable.validateAndISOFormatDate(targetItem.APBDate);
+                    updatedItem.apbExpiryDate = globalVariable.validateAndISOFormatDate(targetItem.APBExpiryDate);
+                    updatedItem.apbExtDate = globalVariable.validateAndISOFormatDate(targetItem.APBExtDate);
+                    updatedItem.apbProvidedDate = globalVariable.validateAndISOFormatDate(targetItem.APBProvidedDate);
+                    updatedItem.apbRefNo = targetItem.APBRefNo ?? undefined;
+                    updatedItem.apbBank = targetItem.APBBank ?? undefined;
+                    updatedItem.apbUserId = userId;
+                    updatedItem.apbRecDate = globalVariable.validateAndISOFormatDate(currentDate);
+                    updatedItem.apbUserIPAddr = ipAddress;
+                    updatedItem.apbCompId = companyName;
 
                     const response = await API.SubmitAPB(updatedItem);
 

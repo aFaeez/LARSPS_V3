@@ -24,7 +24,7 @@ const Header = () => {
         setIsOpen(!isOpen);
     };
     const showMobilemenu = () => {
-        document.getElementById("sidebarArea").classList.toggle("showSidebar");
+        document.getElementById("sidebarArea")?.classList.toggle("showSidebar");
     };
     return (
         <Navbar color="primary" dark expand="md" className="fix-header">

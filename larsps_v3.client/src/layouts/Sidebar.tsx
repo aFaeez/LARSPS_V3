@@ -84,7 +84,7 @@ const Sidebar = () => {
         document.getElementById("sidebarArea")?.classList.toggle("showSidebar");
     };
 
-    const handleMenuClick = (menuURL) => {
+    const handleMenuClick = (menuURL: string) => {
         let formattedURL = menuURL;
         // Remove "/LARSPSv2/" or "/LARSPS/" and replace with "~"
         formattedURL = formattedURL.replace(/^\/LARSPSv2\/|^\/LARSPS\//, "~/");
@@ -125,40 +125,48 @@ const Sidebar = () => {
 
                     {/* Other Parent Menus */}
                     {menuItemsParent
-                        .filter(parentMenu => parentMenu.menuName !== "DASHBOARD" && parentMenu.menuName !== "MASTER (V3)") // Exclude Dashboard Master v3
-                        .map((parentMenu) => (
-                            <div key={parentMenu.menuId} className="mb-2">
-                                {/* Parent Menu */}
-                                <NavItem className="sidenav-bg d-flex align-items-center justify-content-between">
-                                    <span className="nav-link text-secondary">{parentMenu.menuName}</span>
-                                    <i
-                                        className={`bi ms-auto ${openMenus[parentMenu.menuId] ? "bi-chevron-up" : "bi-chevron-down"}`}
-                                        onClick={() => setOpenMenus(prev => ({
-                                            ...prev,
-                                            [parentMenu.menuId]: !prev[parentMenu.menuId]
-                                        }))}
-                                        style={{ cursor: "pointer" }}
-                                    ></i>
-                                </NavItem>
+                        .filter(parentMenu => parentMenu.menuName !== "DASHBOARD" && parentMenu.menuName !== "MASTER (V3)")
+                        .map((parentMenu) => {
+                            const menuId = parentMenu.menuId ?? -1; // Ensure menuId is always defined
 
-                                {/* Child Menus */}
-                                {openMenus[parentMenu.menuId] && (
-                                    <div className="ms-4">
-                                        {menuItems[parentMenu.menuId]?.map((menu: GetMenuChildResponse) => (
-                                            <NavItem key={menu.menuId} className="ms-3">
-                                                <Link
-                                                    to={menu.menuURL}
-                                                    className="nav-link text-secondary"
-                                                    onClick={() => handleMenuClick(menu.menuURL)}
-                                                >
-                                                    {menu.menuName}
-                                                </Link>
-                                            </NavItem>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                            return (
+                                <div key={menuId} className="mb-2">
+                                    {/* Parent Menu */}
+                                    <NavItem className="sidenav-bg d-flex align-items-center justify-content-between">
+                                        <span className="nav-link text-secondary">{parentMenu.menuName}</span>
+                                        <i
+                                            className={`bi ms-auto ${openMenus[menuId] ? "bi-chevron-up" : "bi-chevron-down"}`}
+                                            onClick={() => setOpenMenus(prev => ({
+                                                ...prev,
+                                                [menuId]: !prev[menuId]
+                                            }))}
+                                            style={{ cursor: "pointer" }}
+                                        ></i>
+                                    </NavItem>
+
+                                    {/* Child Menus */}
+                                    {openMenus[menuId] && (
+                                        <div className="ms-4">
+                                            {menuItems[menuId]?.map((menu: GetMenuChildResponse) => (
+                                                <NavItem key={menu.menuId} className="ms-3">
+                                                    {menu.menuURL ? (
+                                                        <Link
+                                                            to={menu.menuURL ?? "#"} // Ensures 'to' is always a string
+                                                            className="nav-link text-secondary"
+                                                            onClick={() => handleMenuClick(menu.menuURL ?? "")} // Ensures function receives a string
+                                                        >
+                                                            {menu.menuName}
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="nav-link text-muted">{menu.menuName}</span> // Non-clickable if no URL
+                                                    )}
+                                                </NavItem>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                 </Nav>
             </div>
         </div>

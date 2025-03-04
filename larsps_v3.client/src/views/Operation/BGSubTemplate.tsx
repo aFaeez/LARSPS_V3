@@ -89,28 +89,42 @@ const SubBGTemplate: React.FC<SubBGTemplateProps> = ({ strLA }) => {
                     if (targetItemIndex !== -1) {
                         const targetItem = formData[targetItemIndex];
 
-                        const updatedItem: SubmitBGRequest = {
-                            bgLaNo: targetItem.BGLaNo,
-                            bgAmount: targetItem.BGAmount,
-                            bgDate: globalVariable.validateAndISOFormatDate(targetItem.BGDate),
-                            bgExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.BGExpiryDate),
-                            bgToExtend: targetItem.BGToExtend === "Yes" ? "1" : "0",
-                            bgExtDate: globalVariable.validateAndISOFormatDate(targetItem.BGExtDate),
-                            bgProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.BGProvidedDate),
-                            bgRefNo: targetItem.BGRefNo,
-                            bgBank: targetItem.BGBank,
-                            hawDateExt: globalVariable.validateAndISOFormatDate(targetItem.HawDateExt),
-                            attachment: targetItem.Attachment,
-                            hawProjId: targetItem.HawProjId,
-                            hawRecId: targetItem.HawRecId,
-                            pbReplacementLetter: targetItem.PBReplacementLetter,
-                            pbReplacementLetterOption: targetItem.PBReplacementLetterOption,
-                            bgUserId: userId,
-                            bgRecDate: globalVariable.validateAndISOFormatDate(currentDate),
-                            bgRecId: targetItem.BGRecId,
-                            bgUserIPAddr: ipAddress,
-                            bgCompId : companyName,
-                        };
+                        //const updatedItem: SubmitBGRequest = {
+                        //    bgLaNo: targetItem.BGLaNo,
+                        //    bgAmount: targetItem.BGAmount,
+                        //    bgDate: globalVariable.validateAndISOFormatDate(targetItem.BGDate),
+                        //    bgExpiryDate: globalVariable.validateAndISOFormatDate(targetItem.BGExpiryDate),
+                        //    bgToExtend: targetItem.BGToExtend === "Yes" ? "1" : "0",
+                        //    bgExtDate: globalVariable.validateAndISOFormatDate(targetItem.BGExtDate),
+                        //    bgProvidedDate: globalVariable.validateAndISOFormatDate(targetItem.BGProvidedDate),
+                        //    bgRefNo: targetItem.BGRefNo,
+                        //    bgBank: targetItem.BGBank,
+                        //    hawDateExt: globalVariable.validateAndISOFormatDate(targetItem.HawDateExt),
+                        //    attachment: targetItem.Attachment,
+                        //    hawProjId: targetItem.HawProjId,
+                        //    hawRecId: targetItem.HawRecId,
+                        //    pbReplacementLetter: targetItem.PBReplacementLetter,
+                        //    pbReplacementLetterOption: targetItem.PBReplacementLetterOption,
+                        //    bgUserId: userId,
+                        //    bgRecDate: globalVariable.validateAndISOFormatDate(currentDate),
+                        //    bgRecId: targetItem.BGRecId,
+                        //    bgUserIPAddr: ipAddress,
+                        //    bgCompId : companyName,
+                        //};
+
+                        const updatedItem = new SubmitBGRequest();
+
+                        updatedItem.bgLaNo = targetItem.BGLaNo;
+                        updatedItem.bgDate = globalVariable.validateAndISOFormatDate(targetItem.BGDate);
+                        updatedItem.bgExpiryDate = globalVariable.validateAndISOFormatDate(targetItem.BGExpiryDate);
+                        updatedItem.bgToExtend = targetItem.BGToExtend === "Yes" ? "1" : "0";
+                        updatedItem.bgExtDate = globalVariable.validateAndISOFormatDate(targetItem.BGExtDate);
+                        updatedItem.bgRefNo = targetItem.BGRefNo ?? undefined;
+                        updatedItem.bgBank = targetItem.BGBank ?? undefined;
+                        updatedItem.bgUserId = userId;
+                        updatedItem.bgRecDate = globalVariable.validateAndISOFormatDate(currentDate);
+                        updatedItem.bgUserIPAddr = ipAddress;
+                        updatedItem.bgCompId = companyName;
 
                         const response = await API.SubmitBG(updatedItem);
 

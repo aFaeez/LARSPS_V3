@@ -11,6 +11,7 @@ interface ModalExampleProps {
     className?: string;
     laNo: string;
     projectId: string;
+    bgpbrlPercent?: number;
     onClose: () => void;
 }
 interface ModalExampleState {
@@ -25,15 +26,44 @@ interface FileItem {
 }
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-const PdfViewer = ({ fileUrl }) => {
-    const [numPages, setNumPages] = useState(null);
+const PdfViewer = ({ fileUrl, onClose }: { fileUrl: string; onClose: () => void }) => {
+    const [numPages, setNumPages] = useState<number | null>(null);
 
     return (
-        <Document file={fileUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
-            {Array.from(new Array(numPages), (el, index) => (
-                <Page key={`page_${index + 1}`} pageNumber={index + 1} />
-            ))}
-        </Document>
+        <Modal isOpen={!!fileUrl} toggle={onClose} size="lg">
+            <ModalHeader toggle={onClose}>PDF Viewer</ModalHeader>
+            <ModalBody>
+                <Document file={fileUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+                    {Array.from(new Array(numPages), (_, index) => (
+                        <Page key={`page_${index + 1}`} pageNumber={index + 1} />
+                    ))}
+                </Document>
+            </ModalBody>
+        </Modal>
+    );
+};
+
+const FileColumn = ({ row }: { row: any }) => {
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+    const fileName = row.original?.BGAPFile;
+    const fullFilePath = row.original?.FullFilePath ?? ""; // Ensure it's always a string
+
+    return (
+        <>
+            {fileName.endsWith(".pdf") ? (
+                <>
+                    <Button color="link" onClick={() => setPdfUrl(fullFilePath)}>
+                        {fileName}
+                    </Button>
+                    {pdfUrl && <PdfViewer fileUrl={pdfUrl} onClose={() => setPdfUrl(null)} />}
+                </>
+            ) : (
+                <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
+                    {fileName}
+                </a>
+            )}
+        </>
     );
 };
 
@@ -41,24 +71,7 @@ const columnsBG: MRT_ColumnDef<AttachmentTable>[] = [
     {
         accessorKey: "BGAPFile",
         header: "File Name",
-        Cell: ({ row }) => {
-            const fileName = row.original.BGAPFile;
-            const fullFilePath = row.original.FullFilePath;
-
-            return (
-                <>
-                    {fileName.endsWith(".pdf") ? (
-                        <Button color="link" onClick={() => PdfViewer(fullFilePath)}>
-                            {fileName}
-                        </Button>
-                    ) : (
-                        <a href={fullFilePath} target="_blank" rel="noopener noreferrer">
-                            {fileName}
-                        </a>
-                    )}
-                </>
-            );
-        },
+        Cell: FileColumn,
     },
     { accessorKey: "BGAPUserId", header: "User ID", size: 200 },
     { accessorKey: "BGAPDate", header: "Uploaded Date" },
@@ -149,67 +162,68 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
         await this.handleSubmit(file);
     };
 
-    handleSubmit = async (file: FileItem) => {
-
+    handleSubmit = async (fileItem: FileItem) => {
         try {
             const userId = sessionStorage.getItem("UserId");
             const companyName = sessionStorage.getItem("CompanyName");
             const ipAddress = await GetUserIPAddress();
 
-            if (!(file instanceof File)) {
+            let file: File; // Ensure `file` is always a `File`
+
+            if (fileItem instanceof File) {
+                file = fileItem; // Already a File, use as-is
+            } else {
                 console.warn("Converting FileItem to File...");
 
-                // Extract a valid filename
-                const fileName = (file as any).name || "uploaded_file.pdf";
+                const fileData = (fileItem as any).data || new Uint8Array();
+                const fileName = (fileItem as any).name || "uploaded_file.pdf";
+                const fileType = (fileItem as any).type || "application/pdf";
 
-                // Convert FileItem to File
-                file = new File([file as Blob], fileName, {
-                    type: "application/pdf",
+                // Convert FileItem to Blob and then to File
+                const fileBlob = new Blob([fileData], { type: fileType });
+                file = new File([fileBlob], fileName, {
+                    type: fileBlob.type,
                     lastModified: Date.now(),
                 });
             }
 
             if (userId && companyName) {
-                // Step 1: Upload file physically
+
                 const fileUploadResponse = await API.BGPhysicalFile(file);
 
                 if (fileUploadResponse.success) {
                     console.log("File uploaded successfully:", fileUploadResponse.filePath);
                 } else {
                     console.error("File upload failed:", fileUploadResponse.message);
+                    return;
                 }
 
                 // Step 2: Save file details in the database
-                const updatedItem: UploadRequest = {
-                    queryType:this.props.type,
-                    bgapUserId: userId,
-                    bgapip: ipAddress,
-                    compId: companyName,
-                    bgapFile: file.name,
-                    bgapProjId: this.props.projectId,
-                    bgapLaNo: this.props.laNo,
-                    bgapType: this.props.type,
+                const updatedItem = new UploadRequest();
+                updatedItem.queryType = this.props.type;
+                updatedItem.bgapUserId = userId;
+                updatedItem.bgapip = ipAddress;
+                updatedItem.compId = companyName;
+                updatedItem.bgapFile = file.name;
+                updatedItem.bgapProjId = this.props.projectId;
+                updatedItem.bgapLaNo = this.props.laNo;
+                updatedItem.bgapType = this.props.type;
+                updatedItem.bgpbrlPercent = this.props.bgpbrlPercent;
 
-                    //bgpbrlPercent: this.state.dd,   // Deduct ContSum / Increase Ret (%)
-                    //pbrlOption: this.state.pbrlOption, // Yes or No
-                };
-                
                 const response = await API.UploadFile(updatedItem);
                 if (response.success) {
                     this.fetchDataFile();
                     console.log("Success");
-                    //this.showToast("success", "File upload successfully!");
                 } else {
-                    console.error("Error");
-                    //this.showToast("error", `Failed: ${response.message}`);
+                    console.error("Error:", response.message);
                 }
             }
         } catch (err) {
             console.error("Upload failed:", err);
-            //this.showToast("error", "Something went wrong. Please try again.");
         }
     };
 
+    
     removeFile = (index: number) => {
         this.setState((prevState) => ({
             files: prevState.files.filter((_, i) => i !== index),
