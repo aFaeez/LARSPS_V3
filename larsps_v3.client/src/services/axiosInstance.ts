@@ -2,12 +2,13 @@
 import { PaginationResult } from "./paginationResponse.ts";
 
 const axiosInstance = axios.create({
-    baseURL: 'https://localhost:44323',
+    baseURL: import.meta.env.VITE_API_BASE_URL, 
     headers: {
         "Content-Type": "application/json",
     },
-});
 
+});
+console.log("Checkpoint 1 :", import.meta.env.VITE_API_BASE_URL);
 
 let isInterceptorSetup = false;
 

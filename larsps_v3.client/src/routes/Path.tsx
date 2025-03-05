@@ -91,7 +91,7 @@ const Path = () => {
                 Object.values(childMenusData).flat().forEach(menu => {
                     if (menu.menuName && menu.menuURL) newRoutes[menu.menuName.toLowerCase()] = menu.menuURL;
                 });
-                console.log("🚀 Final Routes:", newRoutes); // Debugging log
+                //console.log("🚀 Final Routes:", newRoutes); // Debugging log
                 setRoutes(newRoutes);
                 setIsLoading(false);
             }

@@ -168,6 +168,7 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             const companyName = sessionStorage.getItem("CompanyName");
             const ipAddress = await GetUserIPAddress();
 
+            // Step 1: Save file physically
             let file: File; // Ensure `file` is always a `File`
 
             if (fileItem instanceof File) {
@@ -222,7 +223,6 @@ class Uploader extends Component<ModalExampleProps, ModalExampleState> {
             console.error("Upload failed:", err);
         }
     };
-
     
     removeFile = (index: number) => {
         this.setState((prevState) => ({

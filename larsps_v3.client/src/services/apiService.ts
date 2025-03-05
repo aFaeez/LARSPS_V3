@@ -381,8 +381,6 @@ export const Activator = async (AppStat: string, UserId: string, IPAddr: string,
 //    }
 //};
 
-
-
 // Fetch Fetch Get File
 export const FetchGetFile = async (LaNo: string, project: string): Promise<AttachmentTable[]> => {
     try {
@@ -449,7 +447,6 @@ export const BGPhysicalFile = async (file: File): Promise<any> => {
 
         const formData = new FormData();
         formData.append("file", file, file.name);
-
         console.log("Uploading File:", file.name, "Size:", file.size, "Type:", file.type);
 
         const response = await axiosInstance.post("/BGPhysicalFile", formData, {
@@ -462,7 +459,6 @@ export const BGPhysicalFile = async (file: File): Promise<any> => {
         throw new Error("Failed to upload.");
     }
 };
-
 
 export const LoginCred = async (requestData: apiClient.GetUserRequest): Promise<apiClient.GetUserResponse[]> => {
     try {
@@ -490,7 +486,6 @@ export const fetchParentMenus = async (requestData: apiClient.GetMenuParentReque
         throw new Error("Failed to fetch menus");
     }
 };
-
 
 //child
 export const fetchMenus = async (requestData: apiClient.GetMenuChildRequest): Promise<apiClient.GetMenuChildResponse[]> => {

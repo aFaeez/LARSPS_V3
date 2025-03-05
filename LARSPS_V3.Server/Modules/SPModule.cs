@@ -1,5 +1,6 @@
 ﻿using Azure;
 using LARSPS_V3.Server;
+using LARSPS_V3.Server.Modules;
 using LARSPS_V3.Server.Controllers;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -483,6 +484,30 @@ public static class ProjectStoredProcedureModule
         .Produces(400)
         .Produces(500);
 
+        app.MapPost("/GetPhysicalFile", async ([FromServices] IConfiguration _configuration, [FromBody] FileRequest fileRequest) =>
+        {
+            var settings = new
+            {
+                uploadPath = _configuration["AppSettings:LAN_UPLOAD_PATH"],
+                userDomain = _configuration["AppSettings:UploadUser_Domain"],
+                userName = _configuration["AppSettings:UploadUser_Name"],
+                userPwd = _configuration["AppSettings:UploadUser_Pwd"]
+            };
+
+            string filePath = Path.Combine(settings.uploadPath, fileRequest.FileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return Results.NotFound("File not found");
+            }
+
+            byte[] fileBytes = File.ReadAllBytes(filePath);
+
+            return Results.File(fileBytes, "application/octet-stream", fileRequest.FileName);
+        })
+        .WithMetadata(new EndpointNameMetadata("GetPhysicalFile"));
+
+
         app.MapPost("/BGPhysicalFile", async (HttpContext context) =>
         {
             try
@@ -515,7 +540,6 @@ public static class ProjectStoredProcedureModule
                 return Results.Problem(ex.Message);
             }
         });
-
         #endregion
 
         #region ACM Connection

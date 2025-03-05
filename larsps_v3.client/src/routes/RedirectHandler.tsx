@@ -14,8 +14,9 @@ const RedirectHandler = () => {
             const project = sessionStorage.getItem("Project");
 
             // Base URLs
-            const externalBaseURL = "http://10.2.80.239";
-            const localLandingURL = "http://10.2.80.239/LARSPSv2/Landing";
+
+            const externalBaseURL = `${window.location.origin}`;
+            const localLandingURL = `${window.location.origin}/LARSPSv2/Landing`;
 
             if (location.pathname.startsWith("/LARSPS/")) {
                 // Replace localhost with the external system's host dynamically
