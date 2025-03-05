@@ -47,7 +47,6 @@ else
 
 app.UseExceptionHandler(_ => { });
 app.UseCors("CorsPolicy");
-app.UseHttpsRedirection();
 app.MapControllers();
 app.GetSP();
 app.Run();

@@ -152,6 +152,7 @@ export interface Settings {
     connDb: string;
     parentSystemName: string;
     systemName: string;
+    systemURL: string;
     companyName: string;
     uploadPath: string;
     userName: string;

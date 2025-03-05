@@ -25,6 +25,7 @@
 
                 parentSystemName = _configuration["AppSettings:ParentSystemName"],
                 systemName = _configuration["AppSettings:SystemName"],
+                systemURL = _configuration["AppSettings:SystemURL"],
                 companyName = _configuration["AppSettings:CompanyName"],
 
                 uploadPath = _configuration["AppSettings:LAN_UPLOAD_PATH"],
@@ -32,13 +33,11 @@
                 userName = _configuration["AppSettings:UploadUser_Name"],
                 userPwd = _configuration["AppSettings:UploadUser_Pwd"],
 
-                // Start Pages
                 landingPage = _configuration["AppSettings:LandingPage"],
                 mainPage = _configuration["AppSettings:MainPage"],
                 defaultPage = _configuration["AppSettings:DefaultPage"],
                 logoutPage = _configuration["AppSettings:LogoutPage"],
                 errorPage = _configuration["AppSettings:ErrorPage"],
-                // End Pages
 
                 itEmail = _configuration["AppSettings:ITEmail"],
                 recipient = _configuration["AppSettings:Recipient"],
